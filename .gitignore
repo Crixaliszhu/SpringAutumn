@@ -77,3 +77,4 @@ Thumbs.db
 
 # Codely CLI
 .codely-cli/
+.com-unity-codely.json
