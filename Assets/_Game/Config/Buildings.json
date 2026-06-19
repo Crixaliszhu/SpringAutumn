@@ -1,0 +1,13 @@
+{
+    "buildings": [
+        { "id": "FARM", "name": "农田", "scope": "VILLAGE", "cost": 100, "buildMonths": 2, "effectValue": 0.10, "effectType": "GRAIN_TAX" },
+        { "id": "HOUSE", "name": "民居", "scope": "VILLAGE", "cost": 150, "buildMonths": 2, "effectValue": 20, "effectType": "POP_CAP" },
+        { "id": "GRANARY", "name": "粮仓", "scope": "VILLAGE", "cost": 80, "buildMonths": 1, "effectValue": 50000, "effectType": "GRAIN_STORE" },
+        { "id": "TRAINING", "name": "训练场", "scope": "VILLAGE", "cost": 150, "buildMonths": 2, "effectValue": 0.20, "effectType": "RECRUIT_SPEED" },
+        { "id": "WOODWALL", "name": "木墙", "scope": "VILLAGE", "cost": 200, "buildMonths": 3, "effectValue": 0.20, "effectType": "DEFENSE" },
+        { "id": "MARKET", "name": "集市", "scope": "CITY", "cost": 500, "buildMonths": 3, "effectValue": 0.20, "effectType": "MONEY_TAX" },
+        { "id": "OFFICE", "name": "官署", "scope": "CITY", "cost": 400, "buildMonths": 3, "effectValue": 1, "effectType": "GOVERNANCE" },
+        { "id": "BARRACKS", "name": "兵营", "scope": "CITY", "cost": 600, "buildMonths": 4, "effectValue": 50, "effectType": "GARRISON_CAP" },
+        { "id": "STONEWALL", "name": "石墙", "scope": "CITY", "cost": 800, "buildMonths": 5, "effectValue": 0.50, "effectType": "CITY_DEFENSE" }
+    ]
+}

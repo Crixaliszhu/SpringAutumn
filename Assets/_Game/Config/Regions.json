@@ -1,0 +1,34 @@
+{
+    "regions": [
+        { "id": "ZHOU_R01", "name": "洛邑地区", "ownerId": "ZHOU", "cityId": "CITY_ZHOU_001", "villageIds": ["V_ZHOU_001", "V_ZHOU_002", "V_ZHOU_003"], "neighborRegionIds": ["QIN_R02", "QIN_R05", "JIN_R03", "QI_R01"], "isFrontier": false },
+
+        { "id": "QIN_R01", "name": "咸阳地区", "ownerId": "QIN", "cityId": "CITY_QIN_001", "villageIds": ["V_QIN_001", "V_QIN_002", "V_QIN_003"], "neighborRegionIds": ["QIN_R02"], "isFrontier": false },
+        { "id": "QIN_R02", "name": "雍城地区", "ownerId": "QIN", "cityId": "CITY_QIN_002", "villageIds": ["V_QIN_004", "V_QIN_005", "V_QIN_006"], "neighborRegionIds": ["QIN_R01", "QIN_R03", "ZHOU_R01", "JIN_R01", "QIN_R05"], "isFrontier": false },
+        { "id": "QIN_R03", "name": "陇西地区", "ownerId": "QIN", "cityId": "CITY_QIN_003", "villageIds": ["V_QIN_007", "V_QIN_008", "V_QIN_009"], "neighborRegionIds": ["QIN_R02", "QIN_R04"], "isFrontier": false },
+        { "id": "QIN_R04", "name": "西戎边境", "ownerId": "QIN", "cityId": "CITY_QIN_004", "villageIds": ["V_QIN_010", "V_QIN_011", "V_QIN_012"], "neighborRegionIds": ["QIN_R03", "NEU_R01"], "isFrontier": true },
+        { "id": "QIN_R05", "name": "函谷关地区", "ownerId": "QIN", "cityId": "CITY_QIN_005", "villageIds": ["V_QIN_013", "V_QIN_014", "V_QIN_015"], "neighborRegionIds": ["QIN_R02", "JIN_R01", "ZHOU_R01"], "isFrontier": true },
+
+        { "id": "JIN_R01", "name": "河西地区", "ownerId": "JIN", "cityId": "CITY_JIN_001", "villageIds": ["V_JIN_001", "V_JIN_002", "V_JIN_003"], "neighborRegionIds": ["QIN_R02", "QIN_R05", "JIN_R02"], "isFrontier": true },
+        { "id": "JIN_R02", "name": "晋阳地区", "ownerId": "JIN", "cityId": "CITY_JIN_002", "villageIds": ["V_JIN_004", "V_JIN_005", "V_JIN_006"], "neighborRegionIds": ["JIN_R01", "JIN_R03", "JIN_R05"], "isFrontier": false },
+        { "id": "JIN_R03", "name": "绛都地区", "ownerId": "JIN", "cityId": "CITY_JIN_003", "villageIds": ["V_JIN_007", "V_JIN_008", "V_JIN_009"], "neighborRegionIds": ["JIN_R02", "ZHOU_R01", "QI_R01", "JIN_R04"], "isFrontier": false },
+        { "id": "JIN_R04", "name": "太行地区", "ownerId": "JIN", "cityId": "CITY_JIN_004", "villageIds": ["V_JIN_010", "V_JIN_011", "V_JIN_012"], "neighborRegionIds": ["JIN_R03", "QI_R02"], "isFrontier": false },
+        { "id": "JIN_R05", "name": "北狄边境", "ownerId": "JIN", "cityId": "CITY_JIN_005", "villageIds": ["V_JIN_013", "V_JIN_014", "V_JIN_015"], "neighborRegionIds": ["JIN_R02", "NEU_R02"], "isFrontier": true },
+
+        { "id": "QI_R01", "name": "临淄地区", "ownerId": "QI", "cityId": "CITY_QI_001", "villageIds": ["V_QI_001", "V_QI_002", "V_QI_003"], "neighborRegionIds": ["ZHOU_R01", "JIN_R03", "QI_R02", "QI_R03"], "isFrontier": false },
+        { "id": "QI_R02", "name": "泰山地区", "ownerId": "QI", "cityId": "CITY_QI_002", "villageIds": ["V_QI_004", "V_QI_005", "V_QI_006"], "neighborRegionIds": ["QI_R01", "JIN_R04", "CHU_R01"], "isFrontier": false },
+        { "id": "QI_R03", "name": "胶东地区", "ownerId": "QI", "cityId": "CITY_QI_003", "villageIds": ["V_QI_007", "V_QI_008", "V_QI_009"], "neighborRegionIds": ["QI_R01", "QI_R04"], "isFrontier": false },
+        { "id": "QI_R04", "name": "海滨地区", "ownerId": "QI", "cityId": "CITY_QI_004", "villageIds": ["V_QI_010", "V_QI_011", "V_QI_012"], "neighborRegionIds": ["QI_R03", "QI_R05"], "isFrontier": false },
+        { "id": "QI_R05", "name": "东夷边境", "ownerId": "QI", "cityId": "CITY_QI_005", "villageIds": ["V_QI_013", "V_QI_014", "V_QI_015"], "neighborRegionIds": ["QI_R04", "NEU_R02"], "isFrontier": true },
+
+        { "id": "CHU_R01", "name": "汉水北岸", "ownerId": "CHU", "cityId": "CITY_CHU_001", "villageIds": ["V_CHU_001", "V_CHU_002", "V_CHU_003"], "neighborRegionIds": ["QI_R02", "CHU_R02"], "isFrontier": false },
+        { "id": "CHU_R02", "name": "郢都地区", "ownerId": "CHU", "cityId": "CITY_CHU_002", "villageIds": ["V_CHU_004", "V_CHU_005", "V_CHU_006"], "neighborRegionIds": ["CHU_R01", "CHU_R03"], "isFrontier": false },
+        { "id": "CHU_R03", "name": "云梦泽地区", "ownerId": "CHU", "cityId": "CITY_CHU_003", "villageIds": ["V_CHU_007", "V_CHU_008", "V_CHU_009"], "neighborRegionIds": ["CHU_R02", "CHU_R04"], "isFrontier": false },
+        { "id": "CHU_R04", "name": "荆南地区", "ownerId": "CHU", "cityId": "CITY_CHU_004", "villageIds": ["V_CHU_010", "V_CHU_011", "V_CHU_012"], "neighborRegionIds": ["CHU_R03", "CHU_R05"], "isFrontier": false },
+        { "id": "CHU_R05", "name": "南蛮边境", "ownerId": "CHU", "cityId": "CITY_CHU_005", "villageIds": ["V_CHU_013", "V_CHU_014", "V_CHU_015"], "neighborRegionIds": ["CHU_R04", "PLAYER_R01"], "isFrontier": true },
+
+        { "id": "PLAYER_R01", "name": "南方流民区域", "ownerId": "PLAYER", "cityId": "", "villageIds": ["V_PLAYER_001"], "neighborRegionIds": ["CHU_R05", "NEU_R01"], "isFrontier": true },
+
+        { "id": "NEU_R01", "name": "西南荒地", "ownerId": "NEUTRAL", "cityId": "", "villageIds": ["V_NEU_001", "V_NEU_002"], "neighborRegionIds": ["QIN_R04", "PLAYER_R01"], "isFrontier": true },
+        { "id": "NEU_R02", "name": "东北边地", "ownerId": "NEUTRAL", "cityId": "", "villageIds": ["V_NEU_003", "V_NEU_004"], "neighborRegionIds": ["JIN_R05", "QI_R05"], "isFrontier": true }
+    ]
+}

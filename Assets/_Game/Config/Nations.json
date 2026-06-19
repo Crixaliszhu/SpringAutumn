@@ -1,0 +1,11 @@
+{
+    "nations": [
+        { "id": "ZHOU", "name": "周", "type": "Kingdom", "color": "#CC2222", "capitalRegionId": "ZHOU_R01" },
+        { "id": "QIN", "name": "秦", "type": "Kingdom", "color": "#222222", "capitalRegionId": "QIN_R01" },
+        { "id": "JIN", "name": "晋", "type": "Kingdom", "color": "#2244CC", "capitalRegionId": "JIN_R03" },
+        { "id": "QI", "name": "齐", "type": "Kingdom", "color": "#DDBB22", "capitalRegionId": "QI_R01" },
+        { "id": "CHU", "name": "楚", "type": "Kingdom", "color": "#229944", "capitalRegionId": "CHU_R02" },
+        { "id": "PLAYER", "name": "玩家", "type": "Player", "color": "#9933CC", "capitalRegionId": "PLAYER_R01" },
+        { "id": "NEUTRAL", "name": "中立", "type": "Neutral", "color": "#888888", "capitalRegionId": "" }
+    ]
+}

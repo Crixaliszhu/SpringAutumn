@@ -1,0 +1,10 @@
+{
+    "attackCoefficient": 1.0,
+    "defenseCoefficient": 1.0,
+    "minGarrisonVillage": 10,
+    "minGarrisonCity": 30,
+    "minGarrisonCapital": 50,
+    "maxConscriptRate": 0.5,
+    "captureLoyalty": 60,
+    "loyaltyRecoverPerMonth": 2
+}

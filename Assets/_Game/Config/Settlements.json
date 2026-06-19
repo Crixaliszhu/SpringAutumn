@@ -1,0 +1,115 @@
+{
+    "settlements": [
+        { "id": "CITY_ZHOU_001", "name": "洛邑", "templateId": "CAPITAL", "regionId": "ZHOU_R01", "ownerId": "ZHOU", "neighborSettlementIds": ["V_ZHOU_001", "V_ZHOU_002", "V_ZHOU_003"] },
+        { "id": "V_ZHOU_001", "name": "周村甲", "templateId": "VILLAGE", "regionId": "ZHOU_R01", "ownerId": "ZHOU", "neighborSettlementIds": ["CITY_ZHOU_001"] },
+        { "id": "V_ZHOU_002", "name": "周村乙", "templateId": "VILLAGE", "regionId": "ZHOU_R01", "ownerId": "ZHOU", "neighborSettlementIds": ["CITY_ZHOU_001"] },
+        { "id": "V_ZHOU_003", "name": "周村丙", "templateId": "VILLAGE", "regionId": "ZHOU_R01", "ownerId": "ZHOU", "neighborSettlementIds": ["CITY_ZHOU_001"] },
+
+        { "id": "CITY_QIN_001", "name": "咸阳", "templateId": "CAPITAL", "regionId": "QIN_R01", "ownerId": "QIN", "neighborSettlementIds": ["V_QIN_001", "V_QIN_002", "V_QIN_003"] },
+        { "id": "V_QIN_001", "name": "秦村甲", "templateId": "VILLAGE", "regionId": "QIN_R01", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_001"] },
+        { "id": "V_QIN_002", "name": "秦村乙", "templateId": "VILLAGE", "regionId": "QIN_R01", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_001"] },
+        { "id": "V_QIN_003", "name": "秦村丙", "templateId": "VILLAGE", "regionId": "QIN_R01", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_001"] },
+
+        { "id": "CITY_QIN_002", "name": "雍城", "templateId": "CITY", "regionId": "QIN_R02", "ownerId": "QIN", "neighborSettlementIds": ["V_QIN_004", "V_QIN_005", "V_QIN_006"] },
+        { "id": "V_QIN_004", "name": "雍村甲", "templateId": "VILLAGE", "regionId": "QIN_R02", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_002"] },
+        { "id": "V_QIN_005", "name": "雍村乙", "templateId": "VILLAGE", "regionId": "QIN_R02", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_002"] },
+        { "id": "V_QIN_006", "name": "雍村丙", "templateId": "VILLAGE", "regionId": "QIN_R02", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_002"] },
+
+        { "id": "CITY_QIN_003", "name": "陇西城", "templateId": "CITY", "regionId": "QIN_R03", "ownerId": "QIN", "neighborSettlementIds": ["V_QIN_007", "V_QIN_008", "V_QIN_009"] },
+        { "id": "V_QIN_007", "name": "陇西村甲", "templateId": "VILLAGE", "regionId": "QIN_R03", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_003"] },
+        { "id": "V_QIN_008", "name": "陇西村乙", "templateId": "VILLAGE", "regionId": "QIN_R03", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_003"] },
+        { "id": "V_QIN_009", "name": "陇西村丙", "templateId": "VILLAGE", "regionId": "QIN_R03", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_003"] },
+
+        { "id": "CITY_QIN_004", "name": "西戎城", "templateId": "CITY", "regionId": "QIN_R04", "ownerId": "QIN", "neighborSettlementIds": ["V_QIN_010", "V_QIN_011", "V_QIN_012"] },
+        { "id": "V_QIN_010", "name": "西戎村甲", "templateId": "VILLAGE", "regionId": "QIN_R04", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_004"] },
+        { "id": "V_QIN_011", "name": "西戎村乙", "templateId": "VILLAGE", "regionId": "QIN_R04", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_004"] },
+        { "id": "V_QIN_012", "name": "西戎村丙", "templateId": "VILLAGE", "regionId": "QIN_R04", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_004"] },
+
+        { "id": "CITY_QIN_005", "name": "函谷城", "templateId": "CITY", "regionId": "QIN_R05", "ownerId": "QIN", "neighborSettlementIds": ["V_QIN_013", "V_QIN_014", "V_QIN_015"] },
+        { "id": "V_QIN_013", "name": "函谷村甲", "templateId": "VILLAGE", "regionId": "QIN_R05", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_005"] },
+        { "id": "V_QIN_014", "name": "函谷村乙", "templateId": "VILLAGE", "regionId": "QIN_R05", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_005"] },
+        { "id": "V_QIN_015", "name": "函谷村丙", "templateId": "VILLAGE", "regionId": "QIN_R05", "ownerId": "QIN", "neighborSettlementIds": ["CITY_QIN_005"] },
+
+        { "id": "CITY_JIN_001", "name": "河西城", "templateId": "CITY", "regionId": "JIN_R01", "ownerId": "JIN", "neighborSettlementIds": ["V_JIN_001", "V_JIN_002", "V_JIN_003"] },
+        { "id": "V_JIN_001", "name": "河西村甲", "templateId": "VILLAGE", "regionId": "JIN_R01", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_001"] },
+        { "id": "V_JIN_002", "name": "河西村乙", "templateId": "VILLAGE", "regionId": "JIN_R01", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_001"] },
+        { "id": "V_JIN_003", "name": "河西村丙", "templateId": "VILLAGE", "regionId": "JIN_R01", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_001"] },
+
+        { "id": "CITY_JIN_002", "name": "晋阳城", "templateId": "CITY", "regionId": "JIN_R02", "ownerId": "JIN", "neighborSettlementIds": ["V_JIN_004", "V_JIN_005", "V_JIN_006"] },
+        { "id": "V_JIN_004", "name": "晋阳村甲", "templateId": "VILLAGE", "regionId": "JIN_R02", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_002"] },
+        { "id": "V_JIN_005", "name": "晋阳村乙", "templateId": "VILLAGE", "regionId": "JIN_R02", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_002"] },
+        { "id": "V_JIN_006", "name": "晋阳村丙", "templateId": "VILLAGE", "regionId": "JIN_R02", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_002"] },
+
+        { "id": "CITY_JIN_003", "name": "绛都", "templateId": "CAPITAL", "regionId": "JIN_R03", "ownerId": "JIN", "neighborSettlementIds": ["V_JIN_007", "V_JIN_008", "V_JIN_009"] },
+        { "id": "V_JIN_007", "name": "绛都村甲", "templateId": "VILLAGE", "regionId": "JIN_R03", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_003"] },
+        { "id": "V_JIN_008", "name": "绛都村乙", "templateId": "VILLAGE", "regionId": "JIN_R03", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_003"] },
+        { "id": "V_JIN_009", "name": "绛都村丙", "templateId": "VILLAGE", "regionId": "JIN_R03", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_003"] },
+
+        { "id": "CITY_JIN_004", "name": "太行城", "templateId": "CITY", "regionId": "JIN_R04", "ownerId": "JIN", "neighborSettlementIds": ["V_JIN_010", "V_JIN_011", "V_JIN_012"] },
+        { "id": "V_JIN_010", "name": "太行村甲", "templateId": "VILLAGE", "regionId": "JIN_R04", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_004"] },
+        { "id": "V_JIN_011", "name": "太行村乙", "templateId": "VILLAGE", "regionId": "JIN_R04", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_004"] },
+        { "id": "V_JIN_012", "name": "太行村丙", "templateId": "VILLAGE", "regionId": "JIN_R04", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_004"] },
+
+        { "id": "CITY_JIN_005", "name": "北狄城", "templateId": "CITY", "regionId": "JIN_R05", "ownerId": "JIN", "neighborSettlementIds": ["V_JIN_013", "V_JIN_014", "V_JIN_015"] },
+        { "id": "V_JIN_013", "name": "北狄村甲", "templateId": "VILLAGE", "regionId": "JIN_R05", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_005"] },
+        { "id": "V_JIN_014", "name": "北狄村乙", "templateId": "VILLAGE", "regionId": "JIN_R05", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_005"] },
+        { "id": "V_JIN_015", "name": "北狄村丙", "templateId": "VILLAGE", "regionId": "JIN_R05", "ownerId": "JIN", "neighborSettlementIds": ["CITY_JIN_005"] },
+
+        { "id": "CITY_QI_001", "name": "临淄", "templateId": "CAPITAL", "regionId": "QI_R01", "ownerId": "QI", "neighborSettlementIds": ["V_QI_001", "V_QI_002", "V_QI_003"] },
+        { "id": "V_QI_001", "name": "临淄村甲", "templateId": "VILLAGE", "regionId": "QI_R01", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_001"] },
+        { "id": "V_QI_002", "name": "临淄村乙", "templateId": "VILLAGE", "regionId": "QI_R01", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_001"] },
+        { "id": "V_QI_003", "name": "临淄村丙", "templateId": "VILLAGE", "regionId": "QI_R01", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_001"] },
+
+        { "id": "CITY_QI_002", "name": "泰山城", "templateId": "CITY", "regionId": "QI_R02", "ownerId": "QI", "neighborSettlementIds": ["V_QI_004", "V_QI_005", "V_QI_006"] },
+        { "id": "V_QI_004", "name": "泰山村甲", "templateId": "VILLAGE", "regionId": "QI_R02", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_002"] },
+        { "id": "V_QI_005", "name": "泰山村乙", "templateId": "VILLAGE", "regionId": "QI_R02", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_002"] },
+        { "id": "V_QI_006", "name": "泰山村丙", "templateId": "VILLAGE", "regionId": "QI_R02", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_002"] },
+
+        { "id": "CITY_QI_003", "name": "胶东城", "templateId": "CITY", "regionId": "QI_R03", "ownerId": "QI", "neighborSettlementIds": ["V_QI_007", "V_QI_008", "V_QI_009"] },
+        { "id": "V_QI_007", "name": "胶东村甲", "templateId": "VILLAGE", "regionId": "QI_R03", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_003"] },
+        { "id": "V_QI_008", "name": "胶东村乙", "templateId": "VILLAGE", "regionId": "QI_R03", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_003"] },
+        { "id": "V_QI_009", "name": "胶东村丙", "templateId": "VILLAGE", "regionId": "QI_R03", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_003"] },
+
+        { "id": "CITY_QI_004", "name": "海滨城", "templateId": "CITY", "regionId": "QI_R04", "ownerId": "QI", "neighborSettlementIds": ["V_QI_010", "V_QI_011", "V_QI_012"] },
+        { "id": "V_QI_010", "name": "海滨村甲", "templateId": "VILLAGE", "regionId": "QI_R04", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_004"] },
+        { "id": "V_QI_011", "name": "海滨村乙", "templateId": "VILLAGE", "regionId": "QI_R04", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_004"] },
+        { "id": "V_QI_012", "name": "海滨村丙", "templateId": "VILLAGE", "regionId": "QI_R04", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_004"] },
+
+        { "id": "CITY_QI_005", "name": "东夷城", "templateId": "CITY", "regionId": "QI_R05", "ownerId": "QI", "neighborSettlementIds": ["V_QI_013", "V_QI_014", "V_QI_015"] },
+        { "id": "V_QI_013", "name": "东夷村甲", "templateId": "VILLAGE", "regionId": "QI_R05", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_005"] },
+        { "id": "V_QI_014", "name": "东夷村乙", "templateId": "VILLAGE", "regionId": "QI_R05", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_005"] },
+        { "id": "V_QI_015", "name": "东夷村丙", "templateId": "VILLAGE", "regionId": "QI_R05", "ownerId": "QI", "neighborSettlementIds": ["CITY_QI_005"] },
+
+        { "id": "CITY_CHU_001", "name": "汉水城", "templateId": "CITY", "regionId": "CHU_R01", "ownerId": "CHU", "neighborSettlementIds": ["V_CHU_001", "V_CHU_002", "V_CHU_003"] },
+        { "id": "V_CHU_001", "name": "汉水村甲", "templateId": "VILLAGE", "regionId": "CHU_R01", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_001"] },
+        { "id": "V_CHU_002", "name": "汉水村乙", "templateId": "VILLAGE", "regionId": "CHU_R01", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_001"] },
+        { "id": "V_CHU_003", "name": "汉水村丙", "templateId": "VILLAGE", "regionId": "CHU_R01", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_001"] },
+
+        { "id": "CITY_CHU_002", "name": "郢都", "templateId": "CAPITAL", "regionId": "CHU_R02", "ownerId": "CHU", "neighborSettlementIds": ["V_CHU_004", "V_CHU_005", "V_CHU_006"] },
+        { "id": "V_CHU_004", "name": "郢都村甲", "templateId": "VILLAGE", "regionId": "CHU_R02", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_002"] },
+        { "id": "V_CHU_005", "name": "郢都村乙", "templateId": "VILLAGE", "regionId": "CHU_R02", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_002"] },
+        { "id": "V_CHU_006", "name": "郢都村丙", "templateId": "VILLAGE", "regionId": "CHU_R02", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_002"] },
+
+        { "id": "CITY_CHU_003", "name": "云梦城", "templateId": "CITY", "regionId": "CHU_R03", "ownerId": "CHU", "neighborSettlementIds": ["V_CHU_007", "V_CHU_008", "V_CHU_009"] },
+        { "id": "V_CHU_007", "name": "云梦村甲", "templateId": "VILLAGE", "regionId": "CHU_R03", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_003"] },
+        { "id": "V_CHU_008", "name": "云梦村乙", "templateId": "VILLAGE", "regionId": "CHU_R03", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_003"] },
+        { "id": "V_CHU_009", "name": "云梦村丙", "templateId": "VILLAGE", "regionId": "CHU_R03", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_003"] },
+
+        { "id": "CITY_CHU_004", "name": "荆南城", "templateId": "CITY", "regionId": "CHU_R04", "ownerId": "CHU", "neighborSettlementIds": ["V_CHU_010", "V_CHU_011", "V_CHU_012"] },
+        { "id": "V_CHU_010", "name": "荆南村甲", "templateId": "VILLAGE", "regionId": "CHU_R04", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_004"] },
+        { "id": "V_CHU_011", "name": "荆南村乙", "templateId": "VILLAGE", "regionId": "CHU_R04", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_004"] },
+        { "id": "V_CHU_012", "name": "荆南村丙", "templateId": "VILLAGE", "regionId": "CHU_R04", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_004"] },
+
+        { "id": "CITY_CHU_005", "name": "南蛮城", "templateId": "CITY", "regionId": "CHU_R05", "ownerId": "CHU", "neighborSettlementIds": ["V_CHU_013", "V_CHU_014", "V_CHU_015"] },
+        { "id": "V_CHU_013", "name": "南蛮村甲", "templateId": "VILLAGE", "regionId": "CHU_R05", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_005"] },
+        { "id": "V_CHU_014", "name": "南蛮村乙", "templateId": "VILLAGE", "regionId": "CHU_R05", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_005"] },
+        { "id": "V_CHU_015", "name": "南蛮村丙", "templateId": "VILLAGE", "regionId": "CHU_R05", "ownerId": "CHU", "neighborSettlementIds": ["CITY_CHU_005"] },
+
+        { "id": "V_PLAYER_001", "name": "流民村", "templateId": "PLAYER_VILLAGE", "regionId": "PLAYER_R01", "ownerId": "PLAYER", "neighborSettlementIds": [] },
+
+        { "id": "V_NEU_001", "name": "西南荒村甲", "templateId": "NEUTRAL_VILLAGE", "regionId": "NEU_R01", "ownerId": "NEUTRAL", "neighborSettlementIds": ["V_NEU_002"] },
+        { "id": "V_NEU_002", "name": "西南荒村乙", "templateId": "NEUTRAL_VILLAGE", "regionId": "NEU_R01", "ownerId": "NEUTRAL", "neighborSettlementIds": ["V_NEU_001"] },
+        { "id": "V_NEU_003", "name": "东北边村甲", "templateId": "NEUTRAL_VILLAGE", "regionId": "NEU_R02", "ownerId": "NEUTRAL", "neighborSettlementIds": ["V_NEU_004"] },
+        { "id": "V_NEU_004", "name": "东北边村乙", "templateId": "NEUTRAL_VILLAGE", "regionId": "NEU_R02", "ownerId": "NEUTRAL", "neighborSettlementIds": ["V_NEU_003"] }
+    ]
+}

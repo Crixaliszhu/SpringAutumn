@@ -1,0 +1,9 @@
+{
+    "householdSize": 5,
+    "landPerHousehold": 50,
+    "grainPerLandPerYear": 100,
+    "grainTaxRate": 0.15,
+    "moneyTaxPerPersonPerYear": 2,
+    "soldierGrainPerMonth": 90,
+    "soldierWagePerMonth": 1
+}

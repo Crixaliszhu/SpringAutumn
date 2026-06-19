@@ -1,0 +1,7 @@
+{
+    "warPowerThreshold": 1.3,
+    "maxArmyCount": 3,
+    "recruitPopulationRate": 0.1,
+    "buildMoneyThreshold": 500,
+    "foodSafeMonths": 12
+}
