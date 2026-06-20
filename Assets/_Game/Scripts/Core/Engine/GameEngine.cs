@@ -1,4 +1,5 @@
 using SpringAutumn.Commands;
+using SpringAutumn.Core.Events;
 using SpringAutumn.Core.Utils;
 using SpringAutumn.Runtime;
 
@@ -6,13 +7,14 @@ namespace SpringAutumn.Core.Engine
 {
     /// <summary>
     /// 游戏核心引擎。纯 C#，不继承 MonoBehaviour。
-    /// 管理 WorldRuntime、SystemManager、CommandQueue；驱动月度 Tick 循环（需求 4.3、4.5）。
+    /// 管理 WorldRuntime、SystemManager、CommandQueue、EventBus；驱动月度 Tick 循环（需求 4.3、4.5、11.2）。
     /// </summary>
     public class GameEngine
     {
         public GameState State { get; private set; } = GameState.None;
         public WorldRuntime World { get; private set; }
         public SystemManager Systems { get; private set; }
+        public EventBus Events { get; private set; } = new EventBus();
 
         /// <summary>
         /// 初始化引擎。传入已由 WorldFactory 创建的世界与已注册好 System 的 SystemManager。
@@ -41,6 +43,9 @@ namespace SpringAutumn.Core.Engine
 
             // 3-11. SystemManager 按固定注册顺序执行各 System
             Systems.ExecuteTick(World);
+
+            // 发布 MonthChanged 事件（需求 11.2）
+            Events.Publish(new MonthChanged { Year = World.Time.Year, Month = World.Time.Month });
         }
 
         public void Pause()
