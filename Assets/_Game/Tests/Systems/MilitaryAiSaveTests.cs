@@ -93,6 +93,31 @@ namespace SpringAutumn.Tests.Systems
         }
 
         [Test]
+        public void P6_BattleCapture_DoesNotCreateOrDestroyPopulation()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var source = world.Settlements.Get("CITY_QIN_002");
+            source.Garrison = 400;
+            var target = world.Settlements.Get("CITY_ZHOU_001");
+            target.Garrison = 10;
+            int populationBefore = world.Settlements.GetAll().Sum(s => s.Population);
+
+            var move = new MoveArmyCommand("QIN", source.Id, "ZHOU_R01", 150, config);
+            move.Execute(world);
+            var army = world.Armies.GetAll().First();
+            new ArmySystem().Execute(world);
+
+            var attack = new AttackCommand("QIN", army.Id, target.Id);
+            Assert.IsTrue(attack.Validate(world));
+            attack.Execute(world);
+            new BattleSystem(config).Execute(world);
+
+            int populationAfter = world.Settlements.GetAll().Sum(s => s.Population);
+            Assert.AreEqual(populationBefore, populationAfter, "战斗与占领不应凭空增减总人口");
+        }
+
+        [Test]
         public void M7_DiplomacySystem_MarksWarWhenRelationIsVeryLow()
         {
             var world = NewWorld();

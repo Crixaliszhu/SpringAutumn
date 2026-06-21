@@ -62,6 +62,47 @@ namespace SpringAutumn.Tests.Config
         }
 
         [Test]
+        public void P1_ConfigScaleInvariant_AllSettlementsAreReferencedExactlyOnce()
+        {
+            var db = new ConfigLoader().Load(RealSource());
+            var referencedSettlementIds = new List<string>();
+
+            foreach (var region in db.Regions.Values)
+            {
+                if (!string.IsNullOrEmpty(region.cityId))
+                    referencedSettlementIds.Add(region.cityId);
+                referencedSettlementIds.AddRange(region.villageIds);
+            }
+
+            CollectionAssert.AreEquivalent(
+                db.Settlements.Keys,
+                referencedSettlementIds,
+                "所有 Settlement 必须且只应被 Region 的 cityId/villageIds 覆盖");
+            Assert.AreEqual(
+                referencedSettlementIds.Count,
+                referencedSettlementIds.Distinct().Count(),
+                "Settlement 不应被多个 Region 重复引用");
+        }
+
+        [Test]
+        public void P2_RegionNeighborSymmetry_AllNeighborEdgesAreBidirectional()
+        {
+            var db = new ConfigLoader().Load(RealSource());
+
+            foreach (var region in db.Regions.Values)
+            {
+                foreach (string neighborId in region.neighborRegionIds)
+                {
+                    Assert.IsTrue(db.Regions.ContainsKey(neighborId), $"邻接区域不存在: {neighborId}");
+                    CollectionAssert.Contains(
+                        db.Regions[neighborId].neighborRegionIds,
+                        region.id,
+                        $"{region.id} -> {neighborId} 必须被 {neighborId} 回指");
+                }
+            }
+        }
+
+        [Test]
         public void Validator_DetectsDuplicateNationId()
         {
             var src = new MutableConfigSource(RealSource());

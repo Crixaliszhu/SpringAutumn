@@ -90,6 +90,21 @@ namespace SpringAutumn.Tests.Runtime
         }
 
         [Test]
+        public void P3_NewWorldOwnerConsistency_AllSettlementsMatchRegionOwner()
+        {
+            var w = NewWorld();
+
+            foreach (var settlement in w.Settlements.GetAll())
+            {
+                var region = w.Regions.Get(settlement.RegionId);
+                Assert.AreEqual(
+                    region.OwnerId,
+                    settlement.OwnerId,
+                    $"{settlement.Id} 的 Owner 应与所属区域 {region.Id} 一致");
+            }
+        }
+
+        [Test]
         public void Runtime_IsIsolatedFrom_Config()
         {
             var config = LoadConfig();
