@@ -26,4 +26,21 @@ namespace SpringAutumn.Runtime
         Retreating, // 撤退
         Disbanded   // 已解散
     }
+
+    /// <summary>两国关系档位。</summary>
+    public enum RelationStatus
+    {
+        Friendly,
+        Neutral,
+        Hostile,
+        WarPossible,
+        War
+    }
+
+    /// <summary>战斗后的胜负结果。</summary>
+    public enum BattleOutcome
+    {
+        AttackerWon,
+        DefenderWon
+    }
 }

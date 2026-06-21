@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SpringAutumn.Config;
 using SpringAutumn.Core.Events;
+using SpringAutumn.Core.Utils;
 using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Systems
@@ -49,21 +50,14 @@ namespace SpringAutumn.Systems
                 s.Garrison += task.Count;
 
                 // 广播征兵完成事件
-                _eventBus?.Publish(new RecruitFinishedEvent
+                _eventBus?.Publish(new RecruitFinished
                 {
                     SettlementId = s.Id,
                     Count = task.Count
                 });
 
-                GameLogger.Log($"[Recruit] {s.Id} 征兵完成: +{task.Count} 士兵");
+                GameLogger.Log(LogModule.Recruit, $"{s.Id} 征兵完成: +{task.Count} 士兵");
             }
         }
-    }
-
-    /// <summary>征兵完成事件（过去式命名）。</summary>
-    public class RecruitFinishedEvent : IGameEvent
-    {
-        public string SettlementId;
-        public int Count;
     }
 }

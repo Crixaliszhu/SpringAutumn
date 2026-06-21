@@ -31,6 +31,16 @@ namespace SpringAutumn.Runtime
             SetRelation(a, b, GetRelation(a, b) + delta);
         }
 
+        public RelationStatus GetStatus(string a, string b)
+        {
+            int relation = GetRelation(a, b);
+            if (relation <= -80) return RelationStatus.War;
+            if (relation <= -50) return RelationStatus.WarPossible;
+            if (relation < 0) return RelationStatus.Hostile;
+            if (relation >= 50) return RelationStatus.Friendly;
+            return RelationStatus.Neutral;
+        }
+
         /// <summary>导出全部关系（用于存档）。</summary>
         public IReadOnlyDictionary<string, int> All => _relations;
 

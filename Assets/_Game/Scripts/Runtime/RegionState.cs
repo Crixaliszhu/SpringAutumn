@@ -20,5 +20,25 @@ namespace SpringAutumn.Runtime
 
         /// <summary>是否拥有核心城。</summary>
         public bool HasCity => !string.IsNullOrEmpty(CityId);
+
+        public void ChangeOwner(WorldRuntime world, string newOwnerId, int captureLoyalty)
+        {
+            OwnerId = newOwnerId;
+
+            if (HasCity && world.Settlements.TryGet(CityId, out var city))
+            {
+                city.OwnerId = newOwnerId;
+                city.Loyalty = captureLoyalty;
+            }
+
+            foreach (var villageId in VillageIds)
+            {
+                if (world.Settlements.TryGet(villageId, out var village))
+                {
+                    village.OwnerId = newOwnerId;
+                    village.Loyalty = captureLoyalty;
+                }
+            }
+        }
     }
 }

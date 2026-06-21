@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SpringAutumn.Config;
 using SpringAutumn.Core.Events;
+using SpringAutumn.Core.Utils;
 using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Systems
@@ -71,20 +72,13 @@ namespace SpringAutumn.Systems
             }
 
             // 广播建筑完成事件
-            _eventBus?.Publish(new BuildingFinishedEvent
+            _eventBus?.Publish(new BuildingFinished
             {
                 SettlementId = s.Id,
                 BuildingId = buildingId
             });
 
-            GameLogger.Log($"[Construction] {s.Id} 建造完成: {buildingId}");
+            GameLogger.Log(LogModule.Construction, $"{s.Id} 建造完成: {buildingId}");
         }
-    }
-
-    /// <summary>建筑完成事件（过去式命名）。</summary>
-    public class BuildingFinishedEvent : IGameEvent
-    {
-        public string SettlementId;
-        public string BuildingId;
     }
 }

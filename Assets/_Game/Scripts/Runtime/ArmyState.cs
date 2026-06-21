@@ -4,8 +4,10 @@ namespace SpringAutumn.Runtime
     public class ArmyState : Entity
     {
         public string NationId;
+        public string SourceSettlementId;
         public string CurrentRegionId;
         public string TargetRegionId;
+        public string TargetSettlementId;
         public int Soldiers;
         public int Morale = 100;
         public ArmyStatus Status = ArmyStatus.Idle;
