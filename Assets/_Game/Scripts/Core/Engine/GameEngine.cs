@@ -19,10 +19,11 @@ namespace SpringAutumn.Core.Engine
         /// <summary>
         /// 初始化引擎。传入已由 WorldFactory 创建的世界与已注册好 System 的 SystemManager。
         /// </summary>
-        public void Initialize(WorldRuntime world, SystemManager systems)
+        public void Initialize(WorldRuntime world, SystemManager systems, EventBus eventBus = null)
         {
             World = world;
             Systems = systems;
+            Events = eventBus ?? Events;
             State = GameState.Running;
             GameLogger.Log(LogModule.Engine, "initialized");
         }
