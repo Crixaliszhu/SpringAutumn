@@ -12,6 +12,7 @@ namespace SpringAutumn.Presentation.Bootstrap
         [SerializeField] private GameLauncher launcher;
         [SerializeField] private HudView hudView;
         [SerializeField] private MessageSystem messageSystem;
+        [SerializeField] private RegionBriefPanel regionBriefPanel;
         [SerializeField] private MapLayerController mapLayerController;
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private TMP_Text statusText;
@@ -59,10 +60,12 @@ namespace SpringAutumn.Presentation.Bootstrap
             }
 
             TmpFontResolver.ApplyToScene();
+            UiTextFontResolver.ApplyToScene();
             selectionManager?.Bind(launcher.Application);
             mapLayerController?.Bind(launcher.Application);
             hudView?.Bind(launcher.Application);
             messageSystem?.Bind(launcher.Application);
+            regionBriefPanel?.Bind(launcher.Application);
             _bound = true;
 
             var world = launcher.Application.World;

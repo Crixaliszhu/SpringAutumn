@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
 using SpringAutumn.Runtime;
 
@@ -13,6 +14,10 @@ namespace SpringAutumn.Presentation.Map
         [SerializeField] private CityView cityViewPrefab;
         [SerializeField] private VillageView villageViewPrefab;
         [SerializeField] private ArmyView armyViewPrefab;
+        [SerializeField] private GameObject uiRoot;
+        [SerializeField] private Text titleText;
+        [SerializeField] private Text placeholderText;
+        [SerializeField] private Button returnButton;
 
         private readonly Dictionary<string, SettlementView> _settlementViews = new Dictionary<string, SettlementView>();
         private readonly Dictionary<string, ArmyView> _armyViews = new Dictionary<string, ArmyView>();
@@ -24,11 +29,20 @@ namespace SpringAutumn.Presentation.Map
         {
             _application = application;
             _controller = controller;
+            returnButton?.onClick.AddListener(ReturnToWorldMap);
+            Hide();
+        }
+
+        private void OnDestroy()
+        {
+            returnButton?.onClick.RemoveListener(ReturnToWorldMap);
         }
 
         public void ShowRegion(string regionId)
         {
             _regionId = regionId;
+            if (uiRoot != null)
+                uiRoot.SetActive(true);
             Refresh();
         }
 
@@ -37,6 +51,12 @@ namespace SpringAutumn.Presentation.Map
             WorldRuntime world = _application?.World;
             if (world == null || string.IsNullOrEmpty(_regionId) || !world.Regions.TryGet(_regionId, out var region))
                 return;
+
+            if (titleText != null)
+                titleText.text = "区域地图：" + region.Id;
+
+            if (placeholderText != null)
+                placeholderText.text = $"核心城：{(region.HasCity ? region.CityId : "无")}\n村庄：{region.VillageIds.Count}\n区域地图内容将在阶段 5 接入";
 
             terrainView?.Refresh(region);
 
@@ -59,6 +79,12 @@ namespace SpringAutumn.Presentation.Map
         public void ReturnToWorldMap()
         {
             _controller?.ShowWorldMap();
+        }
+
+        public void Hide()
+        {
+            if (uiRoot != null)
+                uiRoot.SetActive(false);
         }
 
         private void RefreshSettlement(SettlementState settlement)

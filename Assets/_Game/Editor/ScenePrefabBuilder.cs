@@ -49,7 +49,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-3 Bootstrap HUD WorldMap")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-4 Bootstrap HUD WorldMap RegionBrief")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -74,7 +74,7 @@ namespace SpringAutumn.EditorTools
             CreateEventSystem();
 
             Camera worldCamera = CreateGameCamera();
-            MapLayerController mapLayerController = CreateWorldMap(regionPrefab);
+            MapLayerController mapLayerController = CreateWorldMap(regionPrefab, out RegionMapView regionMapView);
             SelectionManager selectionManager = CreateInputSystem(worldCamera, regionLayer);
 
             Canvas canvas = CreateCanvas(worldCamera);
@@ -122,11 +122,38 @@ namespace SpringAutumn.EditorTools
             SetRect(messageText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(10f, 10f), new Vector2(-20f, -20f));
             SetSerializedValue(messageSystem, "messageText", messageText);
 
+            GameObject regionBriefRoot = CreatePanel("RegionBriefPanel", canvas.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-18f, -24f), new Vector2(300f, 300f));
+            var regionBriefPanel = regionBriefRoot.AddComponent<RegionBriefPanel>();
+
+            Text regionBriefTitle = CreateLegacyText("TitleText", regionBriefRoot.transform, "区域简报", 22, TextAnchor.MiddleLeft);
+            SetRect(regionBriefTitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -14f), new Vector2(268f, 34f));
+
+            Text regionBriefBody = CreateLegacyText("BodyText", regionBriefRoot.transform, "", 18, TextAnchor.UpperLeft);
+            SetRect(regionBriefBody.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -60f), new Vector2(268f, 160f));
+
+            Button enterRegionButton = CreateButton("EnterRegionButton", regionBriefRoot.transform, "进入区域", new Vector2(0f, 0f), new Vector2(112f, 62f), new Vector2(96f, 34f));
+            Button diplomacyButton = CreateButton("DiplomacyButton", regionBriefRoot.transform, "外交", new Vector2(0f, 0f), new Vector2(208f, 62f), new Vector2(72f, 34f));
+            Button attackButton = CreateButton("AttackButton", regionBriefRoot.transform, "进攻", new Vector2(0f, 0f), new Vector2(280f, 62f), new Vector2(72f, 34f));
+            SetRect(enterRegionButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(102f, 34f));
+            SetRect(diplomacyButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(128f, 18f), new Vector2(72f, 34f));
+            SetRect(attackButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(210f, 18f), new Vector2(72f, 34f));
+
+            SetSerializedValue(regionBriefPanel, "titleText", regionBriefTitle);
+            SetSerializedValue(regionBriefPanel, "bodyText", regionBriefBody);
+            SetSerializedValue(regionBriefPanel, "enterRegionButton", enterRegionButton);
+            SetSerializedValue(regionBriefPanel, "diplomacyButton", diplomacyButton);
+            SetSerializedValue(regionBriefPanel, "attackButton", attackButton);
+            SetSerializedValue(regionBriefPanel, "mapLayerController", mapLayerController);
+            regionBriefRoot.SetActive(false);
+
+            CreateRegionMapOverlay(canvas.transform, regionMapView);
+
             TMP_Text statusText = CreateText("StatusText", canvas.transform, "Initializing...", 18, TextAlignmentOptions.Right);
             SetRect(statusText.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-20f, 18f), new Vector2(520f, 32f));
 
             SetSerializedValue(binding, "hudView", hud);
             SetSerializedValue(binding, "messageSystem", messageSystem);
+            SetSerializedValue(binding, "regionBriefPanel", regionBriefPanel);
             SetSerializedValue(binding, "mapLayerController", mapLayerController);
             SetSerializedValue(binding, "selectionManager", selectionManager);
             SetSerializedValue(binding, "statusText", statusText);
@@ -137,7 +164,7 @@ namespace SpringAutumn.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-3 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-4 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -188,7 +215,7 @@ namespace SpringAutumn.EditorTools
             return camera;
         }
 
-        private static MapLayerController CreateWorldMap(RegionView regionPrefab)
+        private static MapLayerController CreateWorldMap(RegionView regionPrefab, out RegionMapView regionMapView)
         {
             var worldRoot = new GameObject("WorldMapRoot");
             worldRoot.transform.position = new Vector3(1.6f, -0.25f, 0f);
@@ -206,7 +233,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(worldMapView, "nationBorderView", borderView);
 
             var regionMapRoot = new GameObject("RegionMapRoot");
-            var regionMapView = regionMapRoot.AddComponent<RegionMapView>();
+            regionMapView = regionMapRoot.AddComponent<RegionMapView>();
             regionMapRoot.SetActive(false);
 
             var controllerObject = new GameObject("MapLayerController");
@@ -214,6 +241,25 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(mapLayerController, "worldMapView", worldMapView);
             SetSerializedValue(mapLayerController, "regionMapView", regionMapView);
             return mapLayerController;
+        }
+
+        private static void CreateRegionMapOverlay(Transform canvasTransform, RegionMapView regionMapView)
+        {
+            GameObject panel = CreatePanel("RegionMapPanel", canvasTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(360f, -108f), new Vector2(360f, 150f));
+
+            Text title = CreateLegacyText("TitleText", panel.transform, "区域地图", 20, TextAnchor.MiddleLeft);
+            SetRect(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -12f), new Vector2(220f, 30f));
+
+            Text placeholder = CreateLegacyText("PlaceholderText", panel.transform, "区域地图内容将在阶段 5 接入", 17, TextAnchor.UpperLeft);
+            SetRect(placeholder.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -50f), new Vector2(240f, 82f));
+
+            Button returnButton = CreateButton("ReturnWorldButton", panel.transform, "返回天下", new Vector2(1f, 1f), new Vector2(-14f, -14f), new Vector2(96f, 34f));
+
+            SetSerializedValue(regionMapView, "uiRoot", panel);
+            SetSerializedValue(regionMapView, "titleText", title);
+            SetSerializedValue(regionMapView, "placeholderText", placeholder);
+            SetSerializedValue(regionMapView, "returnButton", returnButton);
+            panel.SetActive(false);
         }
 
         private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer)
@@ -326,9 +372,34 @@ namespace SpringAutumn.EditorTools
             tmp.alignment = alignment;
             tmp.color = new Color(0.95f, 0.92f, 0.84f);
             tmp.extraPadding = true;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Overflow;
             tmp.fontStyle = FontStyles.Normal;
             tmp.fontWeight = FontWeight.Regular;
             return tmp;
+        }
+
+        private static Text CreateLegacyText(string name, Transform parent, string text, int fontSize, TextAnchor alignment)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var uiText = obj.AddComponent<Text>();
+            Font font = GetOrCreateLocalFontAsset();
+            if (font != null)
+                uiText.font = font;
+            uiText.text = text;
+            uiText.fontSize = fontSize;
+            uiText.alignment = alignment;
+            uiText.color = new Color(0.95f, 0.92f, 0.84f);
+            uiText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            uiText.verticalOverflow = VerticalWrapMode.Overflow;
+            return uiText;
         }
 
         private static TMP_FontAsset GetOrCreateCjkFontAsset()
@@ -443,7 +514,7 @@ namespace SpringAutumn.EditorTools
             var button = obj.AddComponent<Button>();
             button.targetGraphic = obj.GetComponent<Image>();
 
-            TMP_Text text = CreateText("Label", obj.transform, label, 18, TextAlignmentOptions.Center);
+            Text text = CreateLegacyText("Label", obj.transform, label, 18, TextAnchor.MiddleCenter);
             text.color = Color.white;
             return button;
         }

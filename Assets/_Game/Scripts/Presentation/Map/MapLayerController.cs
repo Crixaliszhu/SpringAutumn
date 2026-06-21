@@ -33,6 +33,7 @@ namespace SpringAutumn.Presentation.Map
             CurrentLayer = MapLayer.World;
             CurrentRegionId = null;
             SetActive(worldMapView, true);
+            regionMapView?.Hide();
             SetActive(regionMapView, false);
             worldMapView?.Refresh();
         }

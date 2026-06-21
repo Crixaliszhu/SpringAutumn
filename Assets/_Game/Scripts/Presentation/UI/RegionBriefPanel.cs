@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
@@ -9,8 +8,8 @@ namespace SpringAutumn.Presentation.UI
 {
     public class RegionBriefPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_Text titleText;
-        [SerializeField] private TMP_Text bodyText;
+        [SerializeField] private Text titleText;
+        [SerializeField] private Text bodyText;
         [SerializeField] private Button enterRegionButton;
         [SerializeField] private Button diplomacyButton;
         [SerializeField] private Button attackButton;
@@ -18,14 +17,15 @@ namespace SpringAutumn.Presentation.UI
 
         private GameApplication _application;
         private string _regionId;
+        private string _briefText;
 
         public void Bind(GameApplication application)
         {
             _application = application;
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
-            enterRegionButton?.onClick.AddListener(() => mapLayerController?.EnterRegion(_regionId));
-            diplomacyButton?.onClick.AddListener(() => gameObject.SetActive(false));
-            attackButton?.onClick.AddListener(() => gameObject.SetActive(false));
+            enterRegionButton?.onClick.AddListener(EnterRegion);
+            diplomacyButton?.onClick.AddListener(() => ShowPlaceholder("外交功能后续接入"));
+            attackButton?.onClick.AddListener(() => ShowPlaceholder("进攻功能后续接入"));
             gameObject.SetActive(false);
         }
 
@@ -70,9 +70,28 @@ namespace SpringAutumn.Presentation.UI
             if (titleText != null)
                 titleText.text = region.Id;
             if (bodyText != null)
-                bodyText.text = $"所属：{region.OwnerId}\n城邑：{(region.HasCity ? 1 : 0)}\n村庄：{villages}\n人口：{population}\n守军：{garrison}";
+            {
+                string coreCityId = region.HasCity ? region.CityId : "无";
+                _briefText = $"所属：{region.OwnerId}\n核心城：{coreCityId}\n村庄：{villages}\n人口：{population}\n守军：{garrison}";
+                bodyText.text = _briefText;
+            }
 
             gameObject.SetActive(true);
+        }
+
+        private void EnterRegion()
+        {
+            if (string.IsNullOrEmpty(_regionId))
+                return;
+
+            mapLayerController?.EnterRegion(_regionId);
+            gameObject.SetActive(false);
+        }
+
+        private void ShowPlaceholder(string message)
+        {
+            if (bodyText != null)
+                bodyText.text = string.IsNullOrEmpty(_briefText) ? message : _briefText + "\n\n" + message;
         }
     }
 }
