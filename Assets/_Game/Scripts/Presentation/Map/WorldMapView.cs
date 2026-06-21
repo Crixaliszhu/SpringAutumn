@@ -11,6 +11,8 @@ namespace SpringAutumn.Presentation.Map
         [SerializeField] private Transform regionRoot;
         [SerializeField] private RegionView regionViewPrefab;
         [SerializeField] private NationBorderView nationBorderView;
+        [SerializeField] private int layoutColumns = 6;
+        [SerializeField] private Vector2 regionSpacing = new Vector2(1.15f, 0.82f);
 
         private readonly Dictionary<string, RegionView> _regionViews = new Dictionary<string, RegionView>();
         private GameApplication _application;
@@ -35,14 +37,27 @@ namespace SpringAutumn.Presentation.Map
             if (world == null)
                 return;
 
+            int index = 0;
             foreach (var region in world.Regions.GetAll())
             {
                 RegionView view = GetOrCreate(region.Id);
                 view.Bind(region.Id, _controller);
+                view.transform.localPosition = CalculateRegionPosition(index);
                 view.Refresh(region);
+                index++;
             }
 
             nationBorderView?.Refresh(world);
+        }
+
+        private Vector3 CalculateRegionPosition(int index)
+        {
+            int columns = Mathf.Max(1, layoutColumns);
+            int row = index / columns;
+            int col = index % columns;
+            float x = (col - (columns - 1) * 0.5f) * regionSpacing.x;
+            float y = (1.5f - row) * regionSpacing.y;
+            return new Vector3(x, y, 0f);
         }
 
         private RegionView GetOrCreate(string regionId)

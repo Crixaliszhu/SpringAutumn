@@ -9,6 +9,8 @@ using UnityEngine.TextCore.LowLevel;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
 using SpringAutumn.Presentation.Bootstrap;
+using SpringAutumn.Presentation.Input;
+using SpringAutumn.Presentation.Map;
 using SpringAutumn.Presentation.UI;
 
 namespace SpringAutumn.EditorTools
@@ -17,6 +19,8 @@ namespace SpringAutumn.EditorTools
     {
         private const string SceneDir = "Assets/_Game/Scenes";
         private const string PrefabDir = "Assets/_Game/Prefabs";
+        private const string MapPrefabDir = PrefabDir + "/Map";
+        private const string RegionPrefabPath = MapPrefabDir + "/Region.prefab";
         private const string FontDir = "Assets/_Game/Resources/Fonts";
         private const string LocalCjkFontPath = FontDir + "/SpringAutumnLocalCJK.ttf";
         private const string CjkFontAssetPath = FontDir + "/SpringAutumn CJK SDF.asset";
@@ -45,11 +49,13 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-2 Bootstrap HUD")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-3 Bootstrap HUD WorldMap")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
             RebuildGeneratedFontAsset();
+            int regionLayer = EnsureUserLayer("Region");
+            RegionView regionPrefab = CreateRegionPrefab(regionLayer);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "BootstrapScene";
@@ -67,7 +73,11 @@ namespace SpringAutumn.EditorTools
 
             CreateEventSystem();
 
-            Canvas canvas = CreateCanvas();
+            Camera worldCamera = CreateGameCamera();
+            MapLayerController mapLayerController = CreateWorldMap(regionPrefab);
+            SelectionManager selectionManager = CreateInputSystem(worldCamera, regionLayer);
+
+            Canvas canvas = CreateCanvas(worldCamera);
             GameObject hudRoot = CreatePanel("HUD", canvas.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 88f));
             var hud = hudRoot.AddComponent<HudView>();
 
@@ -106,7 +116,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(hud, "pausePanel", pausePanel);
             SetSerializedValue(hud, "resumeButton", resumeButton);
 
-            GameObject messagePanel = CreatePanel("MessagePanel", canvas.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(360f, -130f));
+            GameObject messagePanel = CreatePanel("MessagePanel", canvas.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(320f, -190f));
             var messageSystem = messagePanel.AddComponent<MessageSystem>();
             TMP_Text messageText = CreateText("MessageText", messagePanel.transform, "", 18, TextAlignmentOptions.TopLeft);
             SetRect(messageText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(10f, 10f), new Vector2(-20f, -20f));
@@ -117,37 +127,34 @@ namespace SpringAutumn.EditorTools
 
             SetSerializedValue(binding, "hudView", hud);
             SetSerializedValue(binding, "messageSystem", messageSystem);
+            SetSerializedValue(binding, "mapLayerController", mapLayerController);
+            SetSerializedValue(binding, "selectionManager", selectionManager);
             SetSerializedValue(binding, "statusText", statusText);
-
-            var cameraObject = new GameObject("UICamera");
-            var camera = cameraObject.AddComponent<Camera>();
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.08f, 0.09f, 0.08f);
-            camera.orthographic = true;
-            camera.orthographicSize = 5f;
-            canvas.worldCamera = camera;
+            canvas.worldCamera = worldCamera;
 
             EditorSceneManager.SaveScene(scene, BootstrapScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BootstrapScenePath, true) };
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-2 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-3 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
         {
             Directory.CreateDirectory(SceneDir);
             Directory.CreateDirectory(PrefabDir);
+            Directory.CreateDirectory(MapPrefabDir);
             Directory.CreateDirectory(FontDir);
         }
 
-        private static Canvas CreateCanvas()
+        private static Canvas CreateCanvas(Camera worldCamera)
         {
             var canvasObject = new GameObject("Canvas");
             var canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.pixelPerfect = true;
+            canvas.worldCamera = worldCamera;
             canvasObject.AddComponent<GraphicRaycaster>();
 
             var scaler = canvasObject.AddComponent<CanvasScaler>();
@@ -163,6 +170,125 @@ namespace SpringAutumn.EditorTools
             var eventSystemObject = new GameObject("EventSystem");
             eventSystemObject.AddComponent<EventSystem>();
             eventSystemObject.AddComponent<StandaloneInputModule>();
+        }
+
+        private static Camera CreateGameCamera()
+        {
+            var cameraObject = new GameObject("WorldCamera");
+            cameraObject.tag = "MainCamera";
+            cameraObject.transform.position = new Vector3(0f, 0f, -10f);
+
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.08f, 0.09f, 0.08f);
+            camera.orthographic = true;
+            camera.orthographicSize = 5f;
+            camera.nearClipPlane = 0.1f;
+            camera.farClipPlane = 100f;
+            return camera;
+        }
+
+        private static MapLayerController CreateWorldMap(RegionView regionPrefab)
+        {
+            var worldRoot = new GameObject("WorldMapRoot");
+            worldRoot.transform.position = new Vector3(1.6f, -0.25f, 0f);
+            var worldMapView = worldRoot.AddComponent<WorldMapView>();
+
+            var regionRoot = new GameObject("RegionRoot");
+            regionRoot.transform.SetParent(worldRoot.transform, false);
+
+            var borderObject = new GameObject("NationBorderView");
+            borderObject.transform.SetParent(worldRoot.transform, false);
+            var borderView = borderObject.AddComponent<NationBorderView>();
+
+            SetSerializedValue(worldMapView, "regionRoot", regionRoot.transform);
+            SetSerializedValue(worldMapView, "regionViewPrefab", regionPrefab);
+            SetSerializedValue(worldMapView, "nationBorderView", borderView);
+
+            var regionMapRoot = new GameObject("RegionMapRoot");
+            var regionMapView = regionMapRoot.AddComponent<RegionMapView>();
+            regionMapRoot.SetActive(false);
+
+            var controllerObject = new GameObject("MapLayerController");
+            var mapLayerController = controllerObject.AddComponent<MapLayerController>();
+            SetSerializedValue(mapLayerController, "worldMapView", worldMapView);
+            SetSerializedValue(mapLayerController, "regionMapView", regionMapView);
+            return mapLayerController;
+        }
+
+        private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer)
+        {
+            var inputRoot = new GameObject("InputSystemRoot");
+            var selectionManager = inputRoot.AddComponent<SelectionManager>();
+            var mouseInput = inputRoot.AddComponent<MouseInputAdapter>();
+            var touchInput = inputRoot.AddComponent<TouchInputAdapter>();
+            var inputManager = inputRoot.AddComponent<InputManager>();
+
+            SetSerializedValue(inputManager, "raycastCamera", raycastCamera);
+            SetSerializedValue(inputManager, "selectionManager", selectionManager);
+            SetSerializedValue(inputManager, "mouseInput", mouseInput);
+            SetSerializedValue(inputManager, "touchInput", touchInput);
+            SetSerializedValue(inputManager, "terrainLayer", 1 << regionLayer);
+            return selectionManager;
+        }
+
+        private static RegionView CreateRegionPrefab(int regionLayer)
+        {
+            AssetDatabase.DeleteAsset(RegionPrefabPath);
+
+            GameObject regionObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            regionObject.name = "Region";
+            regionObject.layer = regionLayer;
+            regionObject.transform.localScale = new Vector3(1.0f, 0.58f, 0.08f);
+            var renderer = regionObject.GetComponent<Renderer>();
+
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(regionObject.transform, false);
+            labelObject.transform.localPosition = new Vector3(0f, 0f, -0.12f);
+            labelObject.transform.localScale = new Vector3(0.58f, 0.58f, 0.58f);
+            labelObject.layer = regionLayer;
+            var label = labelObject.AddComponent<TextMesh>();
+            label.text = "REGION";
+            label.anchor = TextAnchor.MiddleCenter;
+            label.alignment = TextAlignment.Center;
+            label.characterSize = 0.1f;
+            label.fontSize = 48;
+            label.color = Color.white;
+
+            var regionView = regionObject.AddComponent<RegionView>();
+            SetSerializedValue(regionView, "targetRenderer", renderer);
+            SetSerializedValue(regionView, "label", label);
+
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(regionObject, RegionPrefabPath);
+            Object.DestroyImmediate(regionObject);
+            return prefab.GetComponent<RegionView>();
+        }
+
+        private static int EnsureUserLayer(string layerName)
+        {
+            SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+            SerializedProperty layers = tagManager.FindProperty("layers");
+
+            for (int i = 8; i < layers.arraySize; i++)
+            {
+                SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                if (layer.stringValue == layerName)
+                    return i;
+            }
+
+            for (int i = 8; i < layers.arraySize; i++)
+            {
+                SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                if (!string.IsNullOrEmpty(layer.stringValue))
+                    continue;
+
+                layer.stringValue = layerName;
+                tagManager.ApplyModifiedPropertiesWithoutUndo();
+                return i;
+            }
+
+            Debug.LogWarning("[SpringAutumn] No empty user layer slot for " + layerName + ". Falling back to Default layer.");
+            return 0;
         }
 
         private static GameObject CreatePanel(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 anchoredPosition, Vector2 sizeDelta)
@@ -375,6 +501,9 @@ namespace SpringAutumn.EditorTools
                     break;
                 case bool boolValue:
                     property.boolValue = boolValue;
+                    break;
+                case int intValue:
+                    property.intValue = intValue;
                     break;
                 default:
                     throw new System.NotSupportedException($"Unsupported serialized value: {value}");

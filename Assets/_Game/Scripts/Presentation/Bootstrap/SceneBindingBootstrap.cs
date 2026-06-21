@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using SpringAutumn.Presentation.Input;
+using SpringAutumn.Presentation.Map;
 using SpringAutumn.Presentation.UI;
 
 namespace SpringAutumn.Presentation.Bootstrap
@@ -10,6 +12,8 @@ namespace SpringAutumn.Presentation.Bootstrap
         [SerializeField] private GameLauncher launcher;
         [SerializeField] private HudView hudView;
         [SerializeField] private MessageSystem messageSystem;
+        [SerializeField] private MapLayerController mapLayerController;
+        [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private TMP_Text statusText;
         [SerializeField] private bool startNewGameOnAwake = true;
 
@@ -55,6 +59,8 @@ namespace SpringAutumn.Presentation.Bootstrap
             }
 
             TmpFontResolver.ApplyToScene();
+            selectionManager?.Bind(launcher.Application);
+            mapLayerController?.Bind(launcher.Application);
             hudView?.Bind(launcher.Application);
             messageSystem?.Bind(launcher.Application);
             _bound = true;
