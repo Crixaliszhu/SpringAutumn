@@ -78,3 +78,10 @@ Thumbs.db
 # Codely CLI
 .codely-cli/
 .com-unity-codely.json
+
+# Local generated CJK font assets.
+# ScenePrefabBuilder recreates these from the developer machine when building scenes.
+/Assets/_Game/Resources/Fonts/SpringAutumnLocalCJK.ttf
+/Assets/_Game/Resources/Fonts/SpringAutumnLocalCJK.ttf.meta
+/Assets/_Game/Resources/Fonts/SpringAutumn CJK SDF.asset
+/Assets/_Game/Resources/Fonts/SpringAutumn CJK SDF.asset.meta
