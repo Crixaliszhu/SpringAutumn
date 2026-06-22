@@ -24,7 +24,7 @@ namespace SpringAutumn.Presentation.Map
             ArmyId = state.Id;
             gameObject.name = "Army_" + state.Id;
             if (label != null)
-                label.text = state.NationId + " " + state.Soldiers;
+                label.text = FormatLabel(state);
 
             Renderer rendererToUse = targetRenderer != null ? targetRenderer : GetComponent<Renderer>();
             if (rendererToUse != null)
@@ -39,6 +39,28 @@ namespace SpringAutumn.Presentation.Map
         public void OnDeselected()
         {
             transform.localScale = _baseScale;
+        }
+
+        private static string FormatLabel(ArmyState state)
+        {
+            if (state == null)
+                return string.Empty;
+            return $"{ShortNation(state.NationId)}军 {state.Soldiers}";
+        }
+
+        private static string ShortNation(string nationId)
+        {
+            switch (nationId)
+            {
+                case "QIN": return "秦";
+                case "JIN": return "晋";
+                case "QI": return "齐";
+                case "CHU": return "楚";
+                case "ZHOU": return "周";
+                case "PLAYER": return "流";
+                case "NEUTRAL": return "中";
+                default: return nationId;
+            }
         }
     }
 }

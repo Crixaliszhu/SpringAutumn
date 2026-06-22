@@ -248,6 +248,7 @@ namespace SpringAutumn.Save
                 data.type = "MoveArmy";
                 data.sourceSettlementId = move.SourceSettlementId;
                 data.targetRegionId = move.TargetRegionId;
+                data.targetSettlementId = move.TargetSettlementId;
                 data.soldiers = move.Soldiers;
             }
             else if (command is AttackCommand attack)
@@ -275,7 +276,7 @@ namespace SpringAutumn.Save
                 case "Recruit":
                     return new RecruitCommand(data.nationId, data.settlementId, data.count, config);
                 case "MoveArmy":
-                    return new MoveArmyCommand(data.nationId, data.sourceSettlementId, data.targetRegionId, data.soldiers, config);
+                    return new MoveArmyCommand(data.nationId, data.sourceSettlementId, data.targetRegionId, data.targetSettlementId, data.soldiers, config);
                 case "Attack":
                     return new AttackCommand(data.nationId, data.armyId, data.targetSettlementId);
                 case "Diplomacy":

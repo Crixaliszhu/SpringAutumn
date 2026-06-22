@@ -1,5 +1,6 @@
 using UnityEngine;
 using SpringAutumn.Bootstrap;
+using SpringAutumn.Core.Events;
 using SpringAutumn.Presentation.Camera;
 using SpringAutumn.Runtime;
 
@@ -25,9 +26,22 @@ namespace SpringAutumn.Presentation.Map
         public void Bind(GameApplication application)
         {
             Application = application;
+            Application.Events.Subscribe<MonthChanged>(OnWorldChanged);
+            Application.Events.Subscribe<BattleFinished>(OnWorldChanged);
+            Application.Events.Subscribe<RegionCaptured>(OnWorldChanged);
             worldMapView?.Bind(application, this);
             regionMapView?.Bind(application, this);
             ShowWorldMap();
+        }
+
+        private void OnDestroy()
+        {
+            if (Application == null)
+                return;
+
+            Application.Events.Unsubscribe<MonthChanged>(OnWorldChanged);
+            Application.Events.Unsubscribe<BattleFinished>(OnWorldChanged);
+            Application.Events.Unsubscribe<RegionCaptured>(OnWorldChanged);
         }
 
         public void ShowWorldMap()
@@ -68,6 +82,11 @@ namespace SpringAutumn.Presentation.Map
         {
             if (view != null)
                 view.gameObject.SetActive(active);
+        }
+
+        private void OnWorldChanged<T>(T evt) where T : IGameEvent
+        {
+            Refresh();
         }
     }
 }

@@ -74,10 +74,14 @@ namespace SpringAutumn.Presentation.Map
                     RefreshSettlement(village, CalculateVillagePosition(i, region.VillageIds.Count, region.HasCity));
             }
 
+            int armyIndex = 0;
             foreach (var army in world.Armies.GetAll())
             {
                 if (army.CurrentRegionId == _regionId && army.Status != ArmyStatus.Disbanded)
-                    RefreshArmy(army);
+                {
+                    RefreshArmy(army, armyIndex);
+                    armyIndex++;
+                }
             }
 
             HideInactive(_settlementViews, _visibleSettlements);
@@ -104,10 +108,11 @@ namespace SpringAutumn.Presentation.Map
             _visibleSettlements.Add(settlement.Id);
         }
 
-        private void RefreshArmy(ArmyState army)
+        private void RefreshArmy(ArmyState army, int index)
         {
             ArmyView view = GetOrCreateArmy(army.Id);
             view.gameObject.SetActive(true);
+            view.transform.localPosition = CalculateArmyPosition(index);
             view.Refresh(army);
             _visibleArmies.Add(army.Id);
         }
@@ -123,6 +128,13 @@ namespace SpringAutumn.Presentation.Map
             float angle = count <= 1 ? 270f : startAngle + span * index / (count - 1);
             float radians = angle * Mathf.Deg2Rad;
             return new Vector3(Mathf.Cos(radians) * radius, Mathf.Sin(radians) * radius, -0.05f);
+        }
+
+        private static Vector3 CalculateArmyPosition(int index)
+        {
+            int row = index / 3;
+            int col = index % 3;
+            return new Vector3(-1.6f + col * 0.55f, 1.45f - row * 0.48f, -0.12f);
         }
 
         private static void HideInactive<T>(Dictionary<string, T> views, HashSet<string> visibleIds) where T : MonoBehaviour

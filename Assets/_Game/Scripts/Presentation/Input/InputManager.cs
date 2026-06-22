@@ -50,6 +50,9 @@ namespace SpringAutumn.Presentation.Input
         {
             if (sample.Phase == PointerPhase.Began)
             {
+                if (!IsInsideActiveCamera(sample.Position))
+                    return;
+
                 _startPosition = sample.Position;
                 _startTime = sample.Time;
                 _dragged = false;
@@ -59,6 +62,9 @@ namespace SpringAutumn.Presentation.Input
 
             if (sample.Phase == PointerPhase.Moved)
             {
+                if (!IsInsideActiveCamera(sample.Position))
+                    return;
+
                 if (Vector2.Distance(_startPosition, sample.Position) > clickMoveThreshold)
                 {
                     _dragged = true;
@@ -70,6 +76,12 @@ namespace SpringAutumn.Presentation.Input
 
             if (sample.Phase == PointerPhase.Ended)
             {
+                if (!IsInsideActiveCamera(sample.Position))
+                {
+                    State = InputState.Idle;
+                    return;
+                }
+
                 bool isClick = !_dragged
                     && Vector2.Distance(_startPosition, sample.Position) <= clickMoveThreshold
                     && sample.Time - _startTime <= clickTimeThreshold;
@@ -90,6 +102,8 @@ namespace SpringAutumn.Presentation.Input
             if (cameraToUse == null)
                 cameraToUse = raycastCamera != null ? raycastCamera : UnityEngine.Camera.main;
             if (cameraToUse == null)
+                return;
+            if (!cameraToUse.pixelRect.Contains(screenPosition))
                 return;
 
             Ray ray = cameraToUse.ScreenPointToRay(screenPosition);
@@ -120,6 +134,14 @@ namespace SpringAutumn.Presentation.Input
 
             selectionManager?.Select(selectable);
             return true;
+        }
+
+        private bool IsInsideActiveCamera(Vector2 screenPosition)
+        {
+            UnityEngine.Camera cameraToUse = cameraManager?.ActiveController?.Camera;
+            if (cameraToUse == null)
+                cameraToUse = raycastCamera != null ? raycastCamera : UnityEngine.Camera.main;
+            return cameraToUse == null || cameraToUse.pixelRect.Contains(screenPosition);
         }
     }
 }

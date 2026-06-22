@@ -43,7 +43,7 @@ namespace SpringAutumn.Systems
             {
                 army.CurrentRegionId = army.TargetRegionId;
                 army.MoveProgress++;
-                army.Status = ArmyStatus.Idle;
+                army.Status = string.IsNullOrEmpty(army.TargetSettlementId) ? ArmyStatus.Idle : ArmyStatus.Sieging;
             }
         }
 

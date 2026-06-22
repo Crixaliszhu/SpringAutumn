@@ -24,6 +24,7 @@ namespace SpringAutumn.EditorTools
         private const string RegionPrefabPath = MapPrefabDir + "/Region.prefab";
         private const string CityPrefabPath = MapPrefabDir + "/City.prefab";
         private const string VillagePrefabPath = MapPrefabDir + "/Village.prefab";
+        private const string ArmyPrefabPath = MapPrefabDir + "/Army.prefab";
         private const string FontDir = "Assets/_Game/Resources/Fonts";
         private const string LocalCjkFontPath = FontDir + "/SpringAutumnLocalCJK.ttf";
         private const string CjkFontAssetPath = FontDir + "/SpringAutumn CJK SDF.asset";
@@ -52,7 +53,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-7 Bootstrap HUD CameraInput")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-8 Bootstrap HUD ArmyVisual")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -61,9 +62,11 @@ namespace SpringAutumn.EditorTools
             int cityLayer = EnsureUserLayer("City");
             int villageLayer = EnsureUserLayer("Village");
             int terrainLayer = EnsureUserLayer("Terrain");
+            int armyLayer = EnsureUserLayer("Army");
             RegionView regionPrefab = CreateRegionPrefab(regionLayer);
             CityView cityPrefab = CreateCityPrefab(cityLayer);
             VillageView villagePrefab = CreateVillagePrefab(villageLayer);
+            ArmyView armyPrefab = CreateArmyPrefab(armyLayer);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "BootstrapScene";
@@ -82,9 +85,9 @@ namespace SpringAutumn.EditorTools
             CreateEventSystem();
 
             Camera worldCamera = CreateGameCameras(out CameraManager cameraManager);
-            MapLayerController mapLayerController = CreateWorldMap(regionPrefab, cityPrefab, villagePrefab, terrainLayer, out RegionMapView regionMapView);
+            MapLayerController mapLayerController = CreateWorldMap(regionPrefab, cityPrefab, villagePrefab, armyPrefab, terrainLayer, out RegionMapView regionMapView);
             SetSerializedValue(mapLayerController, "cameraManager", cameraManager);
-            SelectionManager selectionManager = CreateInputSystem(worldCamera, cameraManager, regionLayer, cityLayer, villageLayer, terrainLayer);
+            SelectionManager selectionManager = CreateInputSystem(worldCamera, cameraManager, regionLayer, cityLayer, villageLayer, armyLayer, terrainLayer);
 
             Canvas canvas = CreateCanvas(worldCamera);
             GameObject hudRoot = CreatePanel("HUD", canvas.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 88f));
@@ -173,7 +176,7 @@ namespace SpringAutumn.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-7 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-8 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -259,7 +262,7 @@ namespace SpringAutumn.EditorTools
             return camera;
         }
 
-        private static MapLayerController CreateWorldMap(RegionView regionPrefab, CityView cityPrefab, VillageView villagePrefab, int terrainLayer, out RegionMapView regionMapView)
+        private static MapLayerController CreateWorldMap(RegionView regionPrefab, CityView cityPrefab, VillageView villagePrefab, ArmyView armyPrefab, int terrainLayer, out RegionMapView regionMapView)
         {
             var worldRoot = new GameObject("WorldMapRoot");
             worldRoot.transform.position = new Vector3(1.6f, -0.25f, 0f);
@@ -316,6 +319,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(regionMapView, "terrainView", terrainView);
             SetSerializedValue(regionMapView, "cityViewPrefab", cityPrefab);
             SetSerializedValue(regionMapView, "villageViewPrefab", villagePrefab);
+            SetSerializedValue(regionMapView, "armyViewPrefab", armyPrefab);
             regionMapRoot.SetActive(false);
 
             var controllerObject = new GameObject("MapLayerController");
@@ -373,7 +377,7 @@ namespace SpringAutumn.EditorTools
             return settlementPanel;
         }
 
-        private static SelectionManager CreateInputSystem(Camera raycastCamera, CameraManager cameraManager, int regionLayer, int cityLayer, int villageLayer, int terrainLayer)
+        private static SelectionManager CreateInputSystem(Camera raycastCamera, CameraManager cameraManager, int regionLayer, int cityLayer, int villageLayer, int armyLayer, int terrainLayer)
         {
             var inputRoot = new GameObject("InputSystemRoot");
             var selectionManager = inputRoot.AddComponent<SelectionManager>();
@@ -386,6 +390,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(inputManager, "cameraManager", cameraManager);
             SetSerializedValue(inputManager, "mouseInput", mouseInput);
             SetSerializedValue(inputManager, "touchInput", touchInput);
+            SetSerializedValue(inputManager, "armyLayer", 1 << armyLayer);
             SetSerializedValue(inputManager, "cityLayer", 1 << cityLayer);
             SetSerializedValue(inputManager, "villageLayer", 1 << villageLayer);
             SetSerializedValue(inputManager, "terrainLayer", (1 << regionLayer) | (1 << terrainLayer));
@@ -460,6 +465,25 @@ namespace SpringAutumn.EditorTools
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(villageObject, VillagePrefabPath);
             Object.DestroyImmediate(villageObject);
             return prefab.GetComponent<VillageView>();
+        }
+
+        private static ArmyView CreateArmyPrefab(int armyLayer)
+        {
+            AssetDatabase.DeleteAsset(ArmyPrefabPath);
+            GameObject armyObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            armyObject.name = "Army";
+            armyObject.layer = armyLayer;
+            armyObject.transform.localScale = new Vector3(0.38f, 0.38f, 0.1f);
+            var renderer = armyObject.GetComponent<Renderer>();
+
+            TextMesh label = CreateWorldLabel(armyObject.transform, "ARMY", new Vector3(0f, -0.72f, -0.18f), 0.46f);
+            var armyView = armyObject.AddComponent<ArmyView>();
+            SetSerializedValue(armyView, "targetRenderer", renderer);
+            SetSerializedValue(armyView, "label", label);
+
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(armyObject, ArmyPrefabPath);
+            Object.DestroyImmediate(armyObject);
+            return prefab.GetComponent<ArmyView>();
         }
 
         private static TextMesh CreateWorldLabel(Transform parent, string text, Vector3 localPosition, float localScale)

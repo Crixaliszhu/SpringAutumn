@@ -8,6 +8,7 @@ namespace SpringAutumn.Commands
     {
         public string SourceSettlementId;
         public string TargetRegionId;
+        public string TargetSettlementId;
         public int Soldiers;
 
         private ConfigDatabase _config;
@@ -24,6 +25,13 @@ namespace SpringAutumn.Commands
             _config = config;
         }
 
+        public MoveArmyCommand(string nationId, string sourceSettlementId, string targetRegionId,
+            string targetSettlementId, int soldiers, ConfigDatabase config)
+            : this(nationId, sourceSettlementId, targetRegionId, soldiers, config)
+        {
+            TargetSettlementId = targetSettlementId;
+        }
+
         public override bool Validate(WorldRuntime world)
         {
             if (_config == null || Soldiers <= 0)
@@ -34,6 +42,13 @@ namespace SpringAutumn.Commands
                 return false;
             if (!world.Regions.Contains(TargetRegionId))
                 return false;
+            if (!string.IsNullOrEmpty(TargetSettlementId))
+            {
+                if (!world.Settlements.TryGet(TargetSettlementId, out var target))
+                    return false;
+                if (target.RegionId != TargetRegionId || target.OwnerId == NationId)
+                    return false;
+            }
             if (source.OwnerId != NationId)
                 return false;
             if (!currentRegion.NeighborRegionIds.Contains(TargetRegionId) && source.RegionId != TargetRegionId)
@@ -67,12 +82,21 @@ namespace SpringAutumn.Commands
                 SourceSettlementId = SourceSettlementId,
                 CurrentRegionId = source.RegionId,
                 TargetRegionId = TargetRegionId,
+                TargetSettlementId = TargetSettlementId,
                 Soldiers = Soldiers,
                 Morale = 100,
-                Status = source.RegionId == TargetRegionId ? ArmyStatus.Idle : ArmyStatus.Marching
+                Status = GetInitialStatus(source.RegionId)
             };
 
             world.Armies.Add(army);
+        }
+
+        private ArmyStatus GetInitialStatus(string sourceRegionId)
+        {
+            if (sourceRegionId != TargetRegionId)
+                return ArmyStatus.Marching;
+
+            return string.IsNullOrEmpty(TargetSettlementId) ? ArmyStatus.Idle : ArmyStatus.Sieging;
         }
 
         private static int GetMinGarrison(SettlementState source, BattleConfig config)
