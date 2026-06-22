@@ -21,6 +21,8 @@ namespace SpringAutumn.EditorTools
         private const string PrefabDir = "Assets/_Game/Prefabs";
         private const string MapPrefabDir = PrefabDir + "/Map";
         private const string RegionPrefabPath = MapPrefabDir + "/Region.prefab";
+        private const string CityPrefabPath = MapPrefabDir + "/City.prefab";
+        private const string VillagePrefabPath = MapPrefabDir + "/Village.prefab";
         private const string FontDir = "Assets/_Game/Resources/Fonts";
         private const string LocalCjkFontPath = FontDir + "/SpringAutumnLocalCJK.ttf";
         private const string CjkFontAssetPath = FontDir + "/SpringAutumn CJK SDF.asset";
@@ -49,13 +51,18 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-4 Bootstrap HUD WorldMap RegionBrief")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-5 Bootstrap HUD WorldMap RegionMap")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
             RebuildGeneratedFontAsset();
             int regionLayer = EnsureUserLayer("Region");
+            int cityLayer = EnsureUserLayer("City");
+            int villageLayer = EnsureUserLayer("Village");
+            int terrainLayer = EnsureUserLayer("Terrain");
             RegionView regionPrefab = CreateRegionPrefab(regionLayer);
+            CityView cityPrefab = CreateCityPrefab(cityLayer);
+            VillageView villagePrefab = CreateVillagePrefab(villageLayer);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "BootstrapScene";
@@ -74,8 +81,8 @@ namespace SpringAutumn.EditorTools
             CreateEventSystem();
 
             Camera worldCamera = CreateGameCamera();
-            MapLayerController mapLayerController = CreateWorldMap(regionPrefab, out RegionMapView regionMapView);
-            SelectionManager selectionManager = CreateInputSystem(worldCamera, regionLayer);
+            MapLayerController mapLayerController = CreateWorldMap(regionPrefab, cityPrefab, villagePrefab, terrainLayer, out RegionMapView regionMapView);
+            SelectionManager selectionManager = CreateInputSystem(worldCamera, regionLayer, cityLayer, villageLayer, terrainLayer);
 
             Canvas canvas = CreateCanvas(worldCamera);
             GameObject hudRoot = CreatePanel("HUD", canvas.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 88f));
@@ -164,7 +171,7 @@ namespace SpringAutumn.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-4 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-5 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -215,7 +222,7 @@ namespace SpringAutumn.EditorTools
             return camera;
         }
 
-        private static MapLayerController CreateWorldMap(RegionView regionPrefab, out RegionMapView regionMapView)
+        private static MapLayerController CreateWorldMap(RegionView regionPrefab, CityView cityPrefab, VillageView villagePrefab, int terrainLayer, out RegionMapView regionMapView)
         {
             var worldRoot = new GameObject("WorldMapRoot");
             worldRoot.transform.position = new Vector3(1.6f, -0.25f, 0f);
@@ -234,6 +241,44 @@ namespace SpringAutumn.EditorTools
 
             var regionMapRoot = new GameObject("RegionMapRoot");
             regionMapView = regionMapRoot.AddComponent<RegionMapView>();
+
+            var terrainObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            terrainObject.name = "TerrainView";
+            terrainObject.layer = terrainLayer;
+            terrainObject.transform.SetParent(regionMapRoot.transform, false);
+            terrainObject.transform.localPosition = new Vector3(1.6f, -0.2f, 0.08f);
+            terrainObject.transform.localScale = new Vector3(6.6f, 4.2f, 0.05f);
+            var terrainRenderer = terrainObject.GetComponent<Renderer>();
+            if (terrainRenderer != null)
+                terrainRenderer.sharedMaterial.color = new Color(0.12f, 0.15f, 0.12f);
+            var terrainView = terrainObject.AddComponent<TerrainView>();
+
+            var terrainLabelObject = new GameObject("Label");
+            terrainLabelObject.transform.SetParent(terrainObject.transform, false);
+            terrainLabelObject.transform.localPosition = new Vector3(0f, 0.5f, -0.18f);
+            terrainLabelObject.transform.localScale = new Vector3(0.18f, 0.18f, 0.18f);
+            var terrainLabel = terrainLabelObject.AddComponent<TextMesh>();
+            terrainLabel.text = "REGION";
+            terrainLabel.anchor = TextAnchor.MiddleCenter;
+            terrainLabel.alignment = TextAlignment.Center;
+            terrainLabel.characterSize = 0.09f;
+            terrainLabel.fontSize = 32;
+            terrainLabel.color = new Color(0.95f, 0.92f, 0.84f);
+            SetSerializedValue(terrainView, "label", terrainLabel);
+
+            var settlementRoot = new GameObject("SettlementRoot");
+            settlementRoot.transform.SetParent(regionMapRoot.transform, false);
+            settlementRoot.transform.localPosition = new Vector3(1.6f, -0.25f, -0.06f);
+
+            var armyRoot = new GameObject("ArmyRoot");
+            armyRoot.transform.SetParent(regionMapRoot.transform, false);
+            armyRoot.transform.localPosition = new Vector3(1.6f, -0.25f, -0.12f);
+
+            SetSerializedValue(regionMapView, "settlementRoot", settlementRoot.transform);
+            SetSerializedValue(regionMapView, "armyRoot", armyRoot.transform);
+            SetSerializedValue(regionMapView, "terrainView", terrainView);
+            SetSerializedValue(regionMapView, "cityViewPrefab", cityPrefab);
+            SetSerializedValue(regionMapView, "villageViewPrefab", villagePrefab);
             regionMapRoot.SetActive(false);
 
             var controllerObject = new GameObject("MapLayerController");
@@ -262,7 +307,7 @@ namespace SpringAutumn.EditorTools
             panel.SetActive(false);
         }
 
-        private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer)
+        private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer, int cityLayer, int villageLayer, int terrainLayer)
         {
             var inputRoot = new GameObject("InputSystemRoot");
             var selectionManager = inputRoot.AddComponent<SelectionManager>();
@@ -274,7 +319,9 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(inputManager, "selectionManager", selectionManager);
             SetSerializedValue(inputManager, "mouseInput", mouseInput);
             SetSerializedValue(inputManager, "touchInput", touchInput);
-            SetSerializedValue(inputManager, "terrainLayer", 1 << regionLayer);
+            SetSerializedValue(inputManager, "cityLayer", 1 << cityLayer);
+            SetSerializedValue(inputManager, "villageLayer", 1 << villageLayer);
+            SetSerializedValue(inputManager, "terrainLayer", (1 << regionLayer) | (1 << terrainLayer));
             return selectionManager;
         }
 
@@ -308,6 +355,61 @@ namespace SpringAutumn.EditorTools
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(regionObject, RegionPrefabPath);
             Object.DestroyImmediate(regionObject);
             return prefab.GetComponent<RegionView>();
+        }
+
+        private static CityView CreateCityPrefab(int cityLayer)
+        {
+            AssetDatabase.DeleteAsset(CityPrefabPath);
+            GameObject cityObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cityObject.name = "City";
+            cityObject.layer = cityLayer;
+            cityObject.transform.localScale = new Vector3(0.72f, 0.72f, 0.12f);
+            var renderer = cityObject.GetComponent<Renderer>();
+
+            TextMesh label = CreateWorldLabel(cityObject.transform, "CITY", new Vector3(0f, -0.72f, -0.18f), 0.32f);
+            var cityView = cityObject.AddComponent<CityView>();
+            SetSerializedValue(cityView, "targetRenderer", renderer);
+            SetSerializedValue(cityView, "label", label);
+
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(cityObject, CityPrefabPath);
+            Object.DestroyImmediate(cityObject);
+            return prefab.GetComponent<CityView>();
+        }
+
+        private static VillageView CreateVillagePrefab(int villageLayer)
+        {
+            AssetDatabase.DeleteAsset(VillagePrefabPath);
+            GameObject villageObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            villageObject.name = "Village";
+            villageObject.layer = villageLayer;
+            villageObject.transform.localScale = new Vector3(0.52f, 0.52f, 0.1f);
+            var renderer = villageObject.GetComponent<Renderer>();
+
+            TextMesh label = CreateWorldLabel(villageObject.transform, "VILLAGE", new Vector3(0f, -0.64f, -0.18f), 0.28f);
+            var villageView = villageObject.AddComponent<VillageView>();
+            SetSerializedValue(villageView, "targetRenderer", renderer);
+            SetSerializedValue(villageView, "label", label);
+
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(villageObject, VillagePrefabPath);
+            Object.DestroyImmediate(villageObject);
+            return prefab.GetComponent<VillageView>();
+        }
+
+        private static TextMesh CreateWorldLabel(Transform parent, string text, Vector3 localPosition, float localScale)
+        {
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(parent, false);
+            labelObject.transform.localPosition = localPosition;
+            labelObject.transform.localScale = new Vector3(localScale, localScale, localScale);
+
+            var label = labelObject.AddComponent<TextMesh>();
+            label.text = text;
+            label.anchor = TextAnchor.MiddleCenter;
+            label.alignment = TextAlignment.Center;
+            label.characterSize = 0.1f;
+            label.fontSize = 42;
+            label.color = Color.white;
+            return label;
         }
 
         private static int EnsureUserLayer(string layerName)

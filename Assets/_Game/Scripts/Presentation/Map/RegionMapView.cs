@@ -21,6 +21,8 @@ namespace SpringAutumn.Presentation.Map
 
         private readonly Dictionary<string, SettlementView> _settlementViews = new Dictionary<string, SettlementView>();
         private readonly Dictionary<string, ArmyView> _armyViews = new Dictionary<string, ArmyView>();
+        private readonly HashSet<string> _visibleSettlements = new HashSet<string>();
+        private readonly HashSet<string> _visibleArmies = new HashSet<string>();
         private GameApplication _application;
         private MapLayerController _controller;
         private string _regionId;
@@ -59,14 +61,17 @@ namespace SpringAutumn.Presentation.Map
                 placeholderText.text = $"核心城：{(region.HasCity ? region.CityId : "无")}\n村庄：{region.VillageIds.Count}\n区域地图内容将在阶段 5 接入";
 
             terrainView?.Refresh(region);
+            _visibleSettlements.Clear();
+            _visibleArmies.Clear();
 
             if (region.HasCity)
-                RefreshSettlement(world.Settlements.Get(region.CityId));
+                RefreshSettlement(world.Settlements.Get(region.CityId), Vector3.zero);
 
-            foreach (var villageId in region.VillageIds)
+            for (int i = 0; i < region.VillageIds.Count; i++)
             {
+                string villageId = region.VillageIds[i];
                 if (world.Settlements.TryGet(villageId, out var village))
-                    RefreshSettlement(village);
+                    RefreshSettlement(village, CalculateVillagePosition(i, region.VillageIds.Count, region.HasCity));
             }
 
             foreach (var army in world.Armies.GetAll())
@@ -74,6 +79,9 @@ namespace SpringAutumn.Presentation.Map
                 if (army.CurrentRegionId == _regionId && army.Status != ArmyStatus.Disbanded)
                     RefreshArmy(army);
             }
+
+            HideInactive(_settlementViews, _visibleSettlements);
+            HideInactive(_armyViews, _visibleArmies);
         }
 
         public void ReturnToWorldMap()
@@ -87,16 +95,43 @@ namespace SpringAutumn.Presentation.Map
                 uiRoot.SetActive(false);
         }
 
-        private void RefreshSettlement(SettlementState settlement)
+        private void RefreshSettlement(SettlementState settlement, Vector3 localPosition)
         {
             SettlementView view = GetOrCreateSettlement(settlement.Id);
+            view.gameObject.SetActive(true);
+            view.transform.localPosition = localPosition;
             view.Refresh(settlement);
+            _visibleSettlements.Add(settlement.Id);
         }
 
         private void RefreshArmy(ArmyState army)
         {
             ArmyView view = GetOrCreateArmy(army.Id);
+            view.gameObject.SetActive(true);
             view.Refresh(army);
+            _visibleArmies.Add(army.Id);
+        }
+
+        private static Vector3 CalculateVillagePosition(int index, int count, bool hasCity)
+        {
+            if (!hasCity && count == 1)
+                return Vector3.zero;
+
+            float radius = hasCity ? 1.55f : 1.05f;
+            float startAngle = hasCity ? 210f : 90f;
+            float span = hasCity ? 120f : 240f;
+            float angle = count <= 1 ? 270f : startAngle + span * index / (count - 1);
+            float radians = angle * Mathf.Deg2Rad;
+            return new Vector3(Mathf.Cos(radians) * radius, Mathf.Sin(radians) * radius, -0.05f);
+        }
+
+        private static void HideInactive<T>(Dictionary<string, T> views, HashSet<string> visibleIds) where T : MonoBehaviour
+        {
+            foreach (var pair in views)
+            {
+                if (!visibleIds.Contains(pair.Key) && pair.Value != null)
+                    pair.Value.gameObject.SetActive(false);
+            }
         }
 
         private SettlementView GetOrCreateSettlement(string id)
