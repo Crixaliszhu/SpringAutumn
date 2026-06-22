@@ -156,18 +156,12 @@ namespace SpringAutumn.EditorTools
             Text regionBriefBody = CreateLegacyText("BodyText", regionBriefRoot.transform, "", 18, TextAnchor.UpperLeft);
             SetRect(regionBriefBody.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -60f), new Vector2(268f, 160f));
 
-            Button enterRegionButton = CreateButton("EnterRegionButton", regionBriefRoot.transform, "进入区域", new Vector2(0f, 0f), new Vector2(112f, 62f), new Vector2(96f, 34f));
-            Button diplomacyButton = CreateButton("DiplomacyButton", regionBriefRoot.transform, "外交", new Vector2(0f, 0f), new Vector2(208f, 62f), new Vector2(72f, 34f));
-            Button attackButton = CreateButton("AttackButton", regionBriefRoot.transform, "进攻", new Vector2(0f, 0f), new Vector2(280f, 62f), new Vector2(72f, 34f));
+            Button enterRegionButton = CreateButton("EnterRegionButton", regionBriefRoot.transform, "进入区域", new Vector2(0f, 0f), new Vector2(112f, 62f), new Vector2(120f, 34f));
             SetRect(enterRegionButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(102f, 34f));
-            SetRect(diplomacyButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(128f, 18f), new Vector2(72f, 34f));
-            SetRect(attackButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(210f, 18f), new Vector2(72f, 34f));
 
             SetSerializedValue(regionBriefPanel, "titleText", regionBriefTitle);
             SetSerializedValue(regionBriefPanel, "bodyText", regionBriefBody);
             SetSerializedValue(regionBriefPanel, "enterRegionButton", enterRegionButton);
-            SetSerializedValue(regionBriefPanel, "diplomacyButton", diplomacyButton);
-            SetSerializedValue(regionBriefPanel, "attackButton", attackButton);
             SetSerializedValue(regionBriefPanel, "mapLayerController", mapLayerController);
             regionBriefRoot.SetActive(false);
 
@@ -423,12 +417,18 @@ namespace SpringAutumn.EditorTools
 
             Button buildButton = CreateButton("BuildButton", panel.transform, "建设", new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(124f, 38f));
             Button recruitButton = CreateButton("RecruitButton", panel.transform, "征兵", new Vector2(0f, 0f), new Vector2(154f, 18f), new Vector2(124f, 38f));
+            Button attackButton = CreateButton("AttackButton", panel.transform, "进攻", new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(124f, 38f));
+            Button diplomacyButton = CreateButton("DiplomacyButton", panel.transform, "外交", new Vector2(0f, 0f), new Vector2(154f, 18f), new Vector2(124f, 38f));
+            attackButton.gameObject.SetActive(false);
+            diplomacyButton.gameObject.SetActive(false);
 
             SetSerializedValue(settlementPanel, "titleText", title);
             SetSerializedValue(settlementPanel, "bodyText", body);
             SetSerializedValue(settlementPanel, "statusText", status);
             SetSerializedValue(settlementPanel, "buildButton", buildButton);
             SetSerializedValue(settlementPanel, "recruitButton", recruitButton);
+            SetSerializedValue(settlementPanel, "attackButton", attackButton);
+            SetSerializedValue(settlementPanel, "diplomacyButton", diplomacyButton);
             SetSerializedValue(settlementPanel, "commandDispatcher", commandDispatcher);
             panel.SetActive(false);
             return settlementPanel;
