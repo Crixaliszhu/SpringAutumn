@@ -9,6 +9,7 @@ using UnityEngine.TextCore.LowLevel;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
 using SpringAutumn.Presentation.Bootstrap;
+using SpringAutumn.Presentation.Camera;
 using SpringAutumn.Presentation.Input;
 using SpringAutumn.Presentation.Map;
 using SpringAutumn.Presentation.UI;
@@ -51,7 +52,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-6 Bootstrap HUD WorldMap RegionCommand")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-7 Bootstrap HUD CameraInput")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -80,9 +81,10 @@ namespace SpringAutumn.EditorTools
 
             CreateEventSystem();
 
-            Camera worldCamera = CreateGameCamera();
+            Camera worldCamera = CreateGameCameras(out CameraManager cameraManager);
             MapLayerController mapLayerController = CreateWorldMap(regionPrefab, cityPrefab, villagePrefab, terrainLayer, out RegionMapView regionMapView);
-            SelectionManager selectionManager = CreateInputSystem(worldCamera, regionLayer, cityLayer, villageLayer, terrainLayer);
+            SetSerializedValue(mapLayerController, "cameraManager", cameraManager);
+            SelectionManager selectionManager = CreateInputSystem(worldCamera, cameraManager, regionLayer, cityLayer, villageLayer, terrainLayer);
 
             Canvas canvas = CreateCanvas(worldCamera);
             GameObject hudRoot = CreatePanel("HUD", canvas.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 88f));
@@ -166,14 +168,12 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(binding, "mapLayerController", mapLayerController);
             SetSerializedValue(binding, "selectionManager", selectionManager);
             SetSerializedValue(binding, "statusText", statusText);
-            canvas.worldCamera = worldCamera;
-
             EditorSceneManager.SaveScene(scene, BootstrapScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BootstrapScenePath, true) };
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-6 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-7 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -188,9 +188,8 @@ namespace SpringAutumn.EditorTools
         {
             var canvasObject = new GameObject("Canvas");
             var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.pixelPerfect = true;
-            canvas.worldCamera = worldCamera;
             canvasObject.AddComponent<GraphicRaycaster>();
 
             var scaler = canvasObject.AddComponent<CanvasScaler>();
@@ -208,17 +207,53 @@ namespace SpringAutumn.EditorTools
             eventSystemObject.AddComponent<StandaloneInputModule>();
         }
 
-        private static Camera CreateGameCamera()
+        private static Camera CreateGameCameras(out CameraManager cameraManager)
         {
-            var cameraObject = new GameObject("WorldCamera");
-            cameraObject.tag = "MainCamera";
-            cameraObject.transform.position = new Vector3(0f, 0f, -10f);
+            Camera worldCamera = CreateSceneCamera("WorldCamera", true, new Vector3(0f, 0f, -10f), 5f);
+            Camera regionCamera = CreateSceneCamera("RegionCamera", false, new Vector3(0f, 0f, -10f), 4.2f);
+
+            var worldController = worldCamera.gameObject.AddComponent<WorldCameraController>();
+            SetSerializedValue(worldController, "targetCamera", worldCamera);
+            SetSerializedValue(worldController, "xBounds", new Vector2(-3f, 3f));
+            SetSerializedValue(worldController, "zBounds", new Vector2(-2f, 2f));
+            SetSerializedValue(worldController, "heightBounds", new Vector2(3.4f, 6.2f));
+            SetSerializedValue(worldController, "panSpeed", 0.006f);
+            SetSerializedValue(worldController, "zoomSpeed", 3.5f);
+
+            var regionController = regionCamera.gameObject.AddComponent<RegionCameraController>();
+            SetSerializedValue(regionController, "targetCamera", regionCamera);
+            SetSerializedValue(regionController, "xBounds", new Vector2(-2f, 4f));
+            SetSerializedValue(regionController, "zBounds", new Vector2(-2.5f, 2.5f));
+            SetSerializedValue(regionController, "heightBounds", new Vector2(2.8f, 5.6f));
+            SetSerializedValue(regionController, "panSpeed", 0.005f);
+            SetSerializedValue(regionController, "zoomSpeed", 3f);
+
+            var cameraRoot = new GameObject("CameraSystem");
+            cameraManager = cameraRoot.AddComponent<CameraManager>();
+            var cameraInput = cameraRoot.AddComponent<CameraInputAdapter>();
+            SetSerializedValue(cameraManager, "worldCameraController", worldController);
+            SetSerializedValue(cameraManager, "regionCameraController", regionController);
+            SetSerializedValue(cameraInput, "cameraManager", cameraManager);
+            SetSerializedValue(cameraInput, "wheelZoomScale", 1f);
+            SetSerializedValue(cameraInput, "handleDrag", false);
+            SetSerializedValue(cameraInput, "handleZoom", true);
+
+            regionCamera.gameObject.SetActive(false);
+            return worldCamera;
+        }
+
+        private static Camera CreateSceneCamera(string name, bool isMainCamera, Vector3 position, float orthographicSize)
+        {
+            var cameraObject = new GameObject(name);
+            if (isMainCamera)
+                cameraObject.tag = "MainCamera";
+            cameraObject.transform.position = position;
 
             var camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.08f, 0.09f, 0.08f);
             camera.orthographic = true;
-            camera.orthographicSize = 5f;
+            camera.orthographicSize = orthographicSize;
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 100f;
             return camera;
@@ -338,7 +373,7 @@ namespace SpringAutumn.EditorTools
             return settlementPanel;
         }
 
-        private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer, int cityLayer, int villageLayer, int terrainLayer)
+        private static SelectionManager CreateInputSystem(Camera raycastCamera, CameraManager cameraManager, int regionLayer, int cityLayer, int villageLayer, int terrainLayer)
         {
             var inputRoot = new GameObject("InputSystemRoot");
             var selectionManager = inputRoot.AddComponent<SelectionManager>();
@@ -348,6 +383,7 @@ namespace SpringAutumn.EditorTools
 
             SetSerializedValue(inputManager, "raycastCamera", raycastCamera);
             SetSerializedValue(inputManager, "selectionManager", selectionManager);
+            SetSerializedValue(inputManager, "cameraManager", cameraManager);
             SetSerializedValue(inputManager, "mouseInput", mouseInput);
             SetSerializedValue(inputManager, "touchInput", touchInput);
             SetSerializedValue(inputManager, "cityLayer", 1 << cityLayer);
@@ -708,6 +744,9 @@ namespace SpringAutumn.EditorTools
                     break;
                 case int intValue:
                     property.intValue = intValue;
+                    break;
+                case Vector2 vector2Value:
+                    property.vector2Value = vector2Value;
                     break;
                 default:
                     throw new System.NotSupportedException($"Unsupported serialized value: {value}");

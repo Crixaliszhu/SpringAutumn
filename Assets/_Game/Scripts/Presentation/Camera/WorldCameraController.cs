@@ -26,7 +26,8 @@ namespace SpringAutumn.Presentation.Camera
                 targetCamera = GetComponent<UnityEngine.Camera>();
             if (targetCamera != null)
             {
-                targetCamera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+                if (!targetCamera.orthographic)
+                    targetCamera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
                 _targetPosition = Clamp(targetCamera.transform.position);
                 SaveState();
             }
@@ -52,19 +53,33 @@ namespace SpringAutumn.Presentation.Camera
 
         public void Pan(Vector2 screenDelta)
         {
-            _targetPosition += new Vector3(-screenDelta.x * panSpeed, 0f, -screenDelta.y * panSpeed);
+            if (targetCamera != null && targetCamera.orthographic)
+                _targetPosition += new Vector3(-screenDelta.x * panSpeed, -screenDelta.y * panSpeed, 0f);
+            else
+                _targetPosition += new Vector3(-screenDelta.x * panSpeed, 0f, -screenDelta.y * panSpeed);
             _targetPosition = Clamp(_targetPosition);
         }
 
         public void Zoom(float delta)
         {
-            _targetPosition.y = Mathf.Clamp(_targetPosition.y - delta * zoomSpeed, heightBounds.x, heightBounds.y);
-            _targetPosition = Clamp(_targetPosition);
+            if (targetCamera != null && targetCamera.orthographic)
+            {
+                targetCamera.orthographicSize = Mathf.Clamp(targetCamera.orthographicSize - delta * zoomSpeed * 0.1f, heightBounds.x, heightBounds.y);
+                _state.Capture(targetCamera);
+            }
+            else
+            {
+                _targetPosition.y = Mathf.Clamp(_targetPosition.y - delta * zoomSpeed, heightBounds.x, heightBounds.y);
+                _targetPosition = Clamp(_targetPosition);
+            }
         }
 
         public void Focus(Vector3 worldPosition)
         {
-            _targetPosition = Clamp(new Vector3(worldPosition.x, _targetPosition.y, worldPosition.z));
+            if (targetCamera != null && targetCamera.orthographic)
+                _targetPosition = Clamp(new Vector3(worldPosition.x, worldPosition.y, _targetPosition.z));
+            else
+                _targetPosition = Clamp(new Vector3(worldPosition.x, _targetPosition.y, worldPosition.z));
         }
 
         public void SaveState()
@@ -82,8 +97,16 @@ namespace SpringAutumn.Presentation.Camera
         private Vector3 Clamp(Vector3 p)
         {
             p.x = Mathf.Clamp(p.x, xBounds.x, xBounds.y);
-            p.y = Mathf.Clamp(p.y, heightBounds.x, heightBounds.y);
-            p.z = Mathf.Clamp(p.z, zBounds.x, zBounds.y);
+            if (targetCamera != null && targetCamera.orthographic)
+            {
+                p.y = Mathf.Clamp(p.y, zBounds.x, zBounds.y);
+                p.z = targetCamera.transform.position.z;
+            }
+            else
+            {
+                p.y = Mathf.Clamp(p.y, heightBounds.x, heightBounds.y);
+                p.z = Mathf.Clamp(p.z, zBounds.x, zBounds.y);
+            }
             return p;
         }
     }

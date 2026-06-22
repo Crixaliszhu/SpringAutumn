@@ -86,7 +86,9 @@ namespace SpringAutumn.Presentation.Input
 
         private void RaycastSelection(Vector2 screenPosition)
         {
-            UnityEngine.Camera cameraToUse = raycastCamera != null ? raycastCamera : UnityEngine.Camera.main;
+            UnityEngine.Camera cameraToUse = cameraManager?.ActiveController?.Camera;
+            if (cameraToUse == null)
+                cameraToUse = raycastCamera != null ? raycastCamera : UnityEngine.Camera.main;
             if (cameraToUse == null)
                 return;
 

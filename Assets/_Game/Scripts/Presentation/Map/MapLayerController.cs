@@ -1,5 +1,6 @@
 using UnityEngine;
 using SpringAutumn.Bootstrap;
+using SpringAutumn.Presentation.Camera;
 using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Presentation.Map
@@ -15,6 +16,7 @@ namespace SpringAutumn.Presentation.Map
     {
         [SerializeField] private WorldMapView worldMapView;
         [SerializeField] private RegionMapView regionMapView;
+        [SerializeField] private CameraManager cameraManager;
 
         public MapLayer CurrentLayer { get; private set; } = MapLayer.None;
         public string CurrentRegionId { get; private set; }
@@ -35,6 +37,7 @@ namespace SpringAutumn.Presentation.Map
             SetActive(worldMapView, true);
             regionMapView?.Hide();
             SetActive(regionMapView, false);
+            cameraManager?.SwitchToWorld();
             worldMapView?.Refresh();
         }
 
@@ -49,6 +52,7 @@ namespace SpringAutumn.Presentation.Map
             CurrentRegionId = regionId;
             SetActive(worldMapView, false);
             SetActive(regionMapView, true);
+            cameraManager?.SwitchToRegion(regionMapView != null ? regionMapView.transform.position : Vector3.zero);
             regionMapView?.ShowRegion(regionId);
         }
 

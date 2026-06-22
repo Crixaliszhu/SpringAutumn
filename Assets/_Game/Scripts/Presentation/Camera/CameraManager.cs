@@ -18,11 +18,6 @@ namespace SpringAutumn.Presentation.Camera
         public ICameraController ActiveController { get; private set; }
         public CameraMode Mode { get; private set; }
 
-        private void Awake()
-        {
-            SwitchToWorld();
-        }
-
         public void SwitchToWorld()
         {
             Switch(CameraMode.World, WorldCamera);

@@ -9,6 +9,8 @@ namespace SpringAutumn.Presentation.Camera
         [SerializeField] private CameraManager cameraManager;
         [SerializeField] private float wheelZoomScale = 1f;
         [SerializeField] private bool blockWhenPointerOverUI = true;
+        [SerializeField] private bool handleDrag = false;
+        [SerializeField] private bool handleZoom = true;
 
         private bool _dragging;
         private Vector2 _lastPointer;
@@ -40,7 +42,7 @@ namespace SpringAutumn.Presentation.Camera
             {
                 _dragging = false;
             }
-            else if (_dragging && UnityInput.GetMouseButton(0))
+            else if (handleDrag && _dragging && UnityInput.GetMouseButton(0))
             {
                 Vector2 now = UnityInput.mousePosition;
                 cameraManager.Pan(now - _lastPointer);
@@ -48,19 +50,19 @@ namespace SpringAutumn.Presentation.Camera
             }
 
             float wheel = UnityInput.mouseScrollDelta.y;
-            if (Mathf.Abs(wheel) > 0.001f)
+            if (handleZoom && Mathf.Abs(wheel) > 0.001f)
                 cameraManager.Zoom(wheel * wheelZoomScale);
         }
 
         private void HandleTouch()
         {
-            if (UnityInput.touchCount == 1)
+            if (handleDrag && UnityInput.touchCount == 1)
             {
                 Touch touch = UnityInput.GetTouch(0);
                 if (touch.phase == TouchPhase.Moved)
                     cameraManager.Pan(touch.deltaPosition);
             }
-            else if (UnityInput.touchCount == 2)
+            else if (handleZoom && UnityInput.touchCount == 2)
             {
                 Touch a = UnityInput.GetTouch(0);
                 Touch b = UnityInput.GetTouch(1);
