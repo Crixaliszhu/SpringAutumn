@@ -13,6 +13,7 @@ namespace SpringAutumn.Presentation.Bootstrap
         [SerializeField] private HudView hudView;
         [SerializeField] private MessageSystem messageSystem;
         [SerializeField] private RegionBriefPanel regionBriefPanel;
+        [SerializeField] private SettlementPanel settlementPanel;
         [SerializeField] private MapLayerController mapLayerController;
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private TMP_Text statusText;
@@ -61,15 +62,23 @@ namespace SpringAutumn.Presentation.Bootstrap
 
             TmpFontResolver.ApplyToScene();
             UiTextFontResolver.ApplyToScene();
+            ResolveOptionalSceneObjects();
             selectionManager?.Bind(launcher.Application);
             mapLayerController?.Bind(launcher.Application);
             hudView?.Bind(launcher.Application);
             messageSystem?.Bind(launcher.Application);
             regionBriefPanel?.Bind(launcher.Application);
+            settlementPanel?.Bind(launcher.Application);
             _bound = true;
 
             var world = launcher.Application.World;
             SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
+        }
+
+        private void ResolveOptionalSceneObjects()
+        {
+            if (settlementPanel == null)
+                settlementPanel = FindObjectOfType<SettlementPanel>(true);
         }
 
         private void SetStatus(string text)

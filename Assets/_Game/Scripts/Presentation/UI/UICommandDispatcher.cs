@@ -15,7 +15,10 @@ namespace SpringAutumn.Presentation.UI
 
         public bool Enqueue(GameCommand command)
         {
-            if (Application?.Engine == null || command == null)
+            if (Application?.Engine == null || Application.World == null || command == null)
+                return false;
+
+            if (!command.Validate(Application.World))
                 return false;
 
             Application.Engine.EnqueueCommand(command);

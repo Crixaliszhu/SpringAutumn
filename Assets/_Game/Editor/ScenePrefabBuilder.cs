@@ -51,7 +51,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-5 Bootstrap HUD WorldMap RegionMap")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-6 Bootstrap HUD WorldMap RegionCommand")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -154,6 +154,7 @@ namespace SpringAutumn.EditorTools
             regionBriefRoot.SetActive(false);
 
             CreateRegionMapOverlay(canvas.transform, regionMapView);
+            SettlementPanel settlementPanel = CreateSettlementPanel(canvas.transform);
 
             TMP_Text statusText = CreateText("StatusText", canvas.transform, "Initializing...", 18, TextAlignmentOptions.Right);
             SetRect(statusText.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-20f, 18f), new Vector2(520f, 32f));
@@ -161,6 +162,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(binding, "hudView", hud);
             SetSerializedValue(binding, "messageSystem", messageSystem);
             SetSerializedValue(binding, "regionBriefPanel", regionBriefPanel);
+            SetSerializedValue(binding, "settlementPanel", settlementPanel);
             SetSerializedValue(binding, "mapLayerController", mapLayerController);
             SetSerializedValue(binding, "selectionManager", selectionManager);
             SetSerializedValue(binding, "statusText", statusText);
@@ -171,7 +173,7 @@ namespace SpringAutumn.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-5 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-6 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -307,6 +309,35 @@ namespace SpringAutumn.EditorTools
             panel.SetActive(false);
         }
 
+        private static SettlementPanel CreateSettlementPanel(Transform canvasTransform)
+        {
+            GameObject panel = CreatePanel("SettlementPanel", canvasTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-18f, -24f), new Vector2(310f, 300f));
+            var settlementPanel = panel.AddComponent<SettlementPanel>();
+            var commandDispatcher = panel.AddComponent<UICommandDispatcher>();
+
+            Text title = CreateLegacyText("TitleText", panel.transform, "据点", 22, TextAnchor.MiddleLeft);
+            SetRect(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -14f), new Vector2(278f, 34f));
+
+            Text body = CreateLegacyText("BodyText", panel.transform, "", 16, TextAnchor.UpperLeft);
+            SetRect(body.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -58f), new Vector2(278f, 120f));
+
+            Text status = CreateLegacyText("StatusText", panel.transform, "", 15, TextAnchor.UpperLeft);
+            status.color = new Color(0.9f, 0.82f, 0.5f);
+            SetRect(status.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(16f, 60f), new Vector2(278f, 34f));
+
+            Button buildButton = CreateButton("BuildButton", panel.transform, "建设", new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(124f, 38f));
+            Button recruitButton = CreateButton("RecruitButton", panel.transform, "征兵", new Vector2(0f, 0f), new Vector2(154f, 18f), new Vector2(124f, 38f));
+
+            SetSerializedValue(settlementPanel, "titleText", title);
+            SetSerializedValue(settlementPanel, "bodyText", body);
+            SetSerializedValue(settlementPanel, "statusText", status);
+            SetSerializedValue(settlementPanel, "buildButton", buildButton);
+            SetSerializedValue(settlementPanel, "recruitButton", recruitButton);
+            SetSerializedValue(settlementPanel, "commandDispatcher", commandDispatcher);
+            panel.SetActive(false);
+            return settlementPanel;
+        }
+
         private static SelectionManager CreateInputSystem(Camera raycastCamera, int regionLayer, int cityLayer, int villageLayer, int terrainLayer)
         {
             var inputRoot = new GameObject("InputSystemRoot");
@@ -366,7 +397,7 @@ namespace SpringAutumn.EditorTools
             cityObject.transform.localScale = new Vector3(0.72f, 0.72f, 0.12f);
             var renderer = cityObject.GetComponent<Renderer>();
 
-            TextMesh label = CreateWorldLabel(cityObject.transform, "CITY", new Vector3(0f, -0.72f, -0.18f), 0.32f);
+            TextMesh label = CreateWorldLabel(cityObject.transform, "CITY", new Vector3(0f, -0.78f, -0.18f), 0.52f);
             var cityView = cityObject.AddComponent<CityView>();
             SetSerializedValue(cityView, "targetRenderer", renderer);
             SetSerializedValue(cityView, "label", label);
@@ -385,7 +416,7 @@ namespace SpringAutumn.EditorTools
             villageObject.transform.localScale = new Vector3(0.52f, 0.52f, 0.1f);
             var renderer = villageObject.GetComponent<Renderer>();
 
-            TextMesh label = CreateWorldLabel(villageObject.transform, "VILLAGE", new Vector3(0f, -0.64f, -0.18f), 0.28f);
+            TextMesh label = CreateWorldLabel(villageObject.transform, "VILLAGE", new Vector3(0f, -0.7f, -0.18f), 0.5f);
             var villageView = villageObject.AddComponent<VillageView>();
             SetSerializedValue(villageView, "targetRenderer", renderer);
             SetSerializedValue(villageView, "label", label);
@@ -406,8 +437,8 @@ namespace SpringAutumn.EditorTools
             label.text = text;
             label.anchor = TextAnchor.MiddleCenter;
             label.alignment = TextAlignment.Center;
-            label.characterSize = 0.1f;
-            label.fontSize = 42;
+            label.characterSize = 0.12f;
+            label.fontSize = 56;
             label.color = Color.white;
             return label;
         }
