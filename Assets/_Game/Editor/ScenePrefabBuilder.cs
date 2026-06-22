@@ -53,7 +53,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-9 Bootstrap HUD ArmyMenu")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-10 Bootstrap HUD FinalCheck")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -191,7 +191,7 @@ namespace SpringAutumn.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-9 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-10 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
