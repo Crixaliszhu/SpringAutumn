@@ -5,7 +5,7 @@ using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Systems
 {
-    /// <summary>自动结算野战军对据点的攻击，并在核心城失守时同步 Region 归属。</summary>
+    /// <summary>自动结算野战军对据点的攻击，并在全区域据点失守时同步 Region 归属。</summary>
     public class BattleSystem : IGameSystem
     {
         private readonly ConfigDatabase _config;
@@ -49,6 +49,19 @@ namespace SpringAutumn.Systems
             target.Garrison -= result.DefenderLosses;
             if (target.Garrison < 0) target.Garrison = 0;
 
+            if (result.AttackerWon)
+            {
+                CaptureSettlement(world, target, army.NationId, oldOwner);
+                target.Garrison += army.Soldiers;
+                army.Soldiers = 0;
+                army.Status = ArmyStatus.Disbanded;
+            }
+            else
+            {
+                ReturnSurvivorsToSource(world, army);
+                army.Status = ArmyStatus.Disbanded;
+            }
+
             _eventBus?.Publish(new BattleFinished
             {
                 AttackerNationId = army.NationId,
@@ -56,16 +69,6 @@ namespace SpringAutumn.Systems
                 SettlementId = target.Id,
                 AttackerWon = result.AttackerWon
             });
-
-            if (result.AttackerWon)
-            {
-                CaptureSettlement(world, target, army.NationId, oldOwner);
-                army.Status = ArmyStatus.Disbanded;
-            }
-            else
-            {
-                army.Status = army.Soldiers <= 0 ? ArmyStatus.Disbanded : ArmyStatus.Retreating;
-            }
         }
 
         private void CaptureSettlement(WorldRuntime world, SettlementState target,
@@ -78,17 +81,57 @@ namespace SpringAutumn.Systems
             if (!world.Regions.TryGet(target.RegionId, out var region))
                 return;
 
-            if (region.CityId == target.Id || !region.HasCity)
+            if (IsRegionFullyOwnedBy(world, region, newOwnerId))
             {
-                region.ChangeOwner(world, newOwnerId, _config.Battle.captureLoyalty);
+                string oldRegionOwnerId = region.OwnerId;
+                if (oldRegionOwnerId == newOwnerId)
+                    return;
+
+                region.OwnerId = newOwnerId;
 
                 _eventBus?.Publish(new RegionCaptured
                 {
                     RegionId = region.Id,
-                    OldOwnerId = oldOwnerId,
+                    OldOwnerId = oldRegionOwnerId,
                     NewOwnerId = newOwnerId
                 });
             }
+        }
+
+        private static bool IsRegionFullyOwnedBy(WorldRuntime world, RegionState region, string ownerId)
+        {
+            if (region.HasCity)
+            {
+                if (!world.Settlements.TryGet(region.CityId, out var city) || city.OwnerId != ownerId)
+                    return false;
+            }
+
+            foreach (var villageId in region.VillageIds)
+            {
+                if (!world.Settlements.TryGet(villageId, out var village) || village.OwnerId != ownerId)
+                    return false;
+            }
+
+            return region.HasCity || region.VillageIds.Count > 0;
+        }
+
+        private static void ReturnSurvivorsToSource(WorldRuntime world, ArmyState army)
+        {
+            if (army.Soldiers <= 0)
+                return;
+            if (string.IsNullOrEmpty(army.SourceSettlementId))
+            {
+                army.Soldiers = 0;
+                return;
+            }
+
+            if (world.Settlements.TryGet(army.SourceSettlementId, out var source)
+                && source.OwnerId == army.NationId)
+            {
+                source.Garrison += army.Soldiers;
+            }
+
+            army.Soldiers = 0;
         }
 
         private float GetDefenseBonus(SettlementState target)

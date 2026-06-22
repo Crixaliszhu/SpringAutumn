@@ -21,7 +21,7 @@ namespace SpringAutumn.Systems
                 {
                     MoveOneRegion(world, army);
                 }
-                else if (army.Status == ArmyStatus.Disbanded)
+                else if (army.Status == ArmyStatus.Retreating || army.Status == ArmyStatus.Disbanded)
                 {
                     ReturnSurvivors(world, army);
                 }
@@ -50,15 +50,23 @@ namespace SpringAutumn.Systems
         private static void ReturnSurvivors(WorldRuntime world, ArmyState army)
         {
             if (army.Soldiers <= 0)
+            {
+                army.Status = ArmyStatus.Disbanded;
                 return;
+            }
             if (string.IsNullOrEmpty(army.SourceSettlementId))
+            {
+                army.Soldiers = 0;
+                army.Status = ArmyStatus.Disbanded;
                 return;
+            }
             if (world.Settlements.TryGet(army.SourceSettlementId, out var source)
                 && source.OwnerId == army.NationId)
             {
                 source.Garrison += army.Soldiers;
-                army.Soldiers = 0;
             }
+            army.Soldiers = 0;
+            army.Status = ArmyStatus.Disbanded;
         }
     }
 }

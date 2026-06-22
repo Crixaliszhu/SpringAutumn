@@ -64,7 +64,7 @@ namespace SpringAutumn.Tests.Systems
         }
 
         [Test]
-        public void M6_BattleCapturesCoreCityAndSynchronizesRegionOwner()
+        public void M6_BattleCapturesSettlementOnlyUntilWholeRegionIsOwned()
         {
             var config = LoadConfig();
             var world = NewWorld();
@@ -85,11 +85,73 @@ namespace SpringAutumn.Tests.Systems
             new BattleSystem(config).Execute(world);
 
             var region = world.Regions.Get("ZHOU_R01");
-            Assert.AreEqual("QIN", region.OwnerId);
+            Assert.AreEqual("ZHOU", region.OwnerId, "未占领所有村庄前，区域归属不应变化");
             Assert.AreEqual("QIN", target.OwnerId);
             foreach (var villageId in region.VillageIds)
-                Assert.AreEqual("QIN", world.Settlements.Get(villageId).OwnerId);
+                Assert.AreEqual("ZHOU", world.Settlements.Get(villageId).OwnerId, "占领核心城不应自动改村庄归属");
             Assert.AreEqual(config.Battle.captureLoyalty, target.Loyalty);
+            Assert.Greater(target.Garrison, 0, "胜利幸存兵应自动驻军到目标据点");
+            Assert.AreEqual(ArmyStatus.Disbanded, army.Status);
+            Assert.AreEqual(0, army.Soldiers);
+        }
+
+        [Test]
+        public void M6_CapturingOneNeutralVillage_DoesNotCaptureSiblingOrRegion()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var target = world.Settlements.Get("V_NEU_001");
+            target.Garrison = 0;
+            var sibling = world.Settlements.Get("V_NEU_002");
+            var region = world.Regions.Get("NEU_R01");
+            var army = new ArmyState("ARMY_TEST")
+            {
+                NationId = "PLAYER",
+                SourceSettlementId = "V_PLAYER_001",
+                CurrentRegionId = "NEU_R01",
+                TargetRegionId = "NEU_R01",
+                TargetSettlementId = target.Id,
+                Soldiers = 20,
+                Status = ArmyStatus.Sieging
+            };
+            world.Armies.Add(army);
+
+            new BattleSystem(config).Execute(world);
+
+            Assert.AreEqual("PLAYER", target.OwnerId);
+            Assert.AreEqual("NEUTRAL", sibling.OwnerId);
+            Assert.AreEqual("NEUTRAL", region.OwnerId);
+            Assert.AreEqual(ArmyStatus.Disbanded, army.Status);
+            Assert.AreEqual(0, army.Soldiers);
+            Assert.Greater(target.Garrison, 0);
+        }
+
+        [Test]
+        public void M6_RegionOwnerChangesOnlyWhenEverySettlementIsOwned()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var region = world.Regions.Get("NEU_R01");
+            world.Settlements.Get("V_NEU_002").OwnerId = "PLAYER";
+            var target = world.Settlements.Get("V_NEU_001");
+            target.Garrison = 0;
+            var army = new ArmyState("ARMY_TEST")
+            {
+                NationId = "PLAYER",
+                SourceSettlementId = "V_PLAYER_001",
+                CurrentRegionId = "NEU_R01",
+                TargetRegionId = "NEU_R01",
+                TargetSettlementId = target.Id,
+                Soldiers = 20,
+                Status = ArmyStatus.Sieging
+            };
+            world.Armies.Add(army);
+
+            new BattleSystem(config).Execute(world);
+
+            Assert.AreEqual("PLAYER", target.OwnerId);
+            Assert.AreEqual("PLAYER", world.Settlements.Get("V_NEU_002").OwnerId);
+            Assert.AreEqual("PLAYER", region.OwnerId);
         }
 
         [Test]

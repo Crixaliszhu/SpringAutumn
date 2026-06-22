@@ -422,6 +422,14 @@ namespace SpringAutumn.EditorTools
             attackButton.gameObject.SetActive(false);
             diplomacyButton.gameObject.SetActive(false);
 
+            GameObject attackConfirmPanel = CreatePanel("AttackConfirmPanel", canvasTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 160f));
+            Text confirmTitle = CreateLegacyText("Title", attackConfirmPanel.transform, "确认进攻", 18, TextAnchor.MiddleLeft);
+            SetRect(confirmTitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -12f), new Vector2(324f, 28f));
+            InputField attackCountInput = CreateInputField("AttackCountInput", attackConfirmPanel.transform, "10", new Vector2(18f, 66f), new Vector2(324f, 34f));
+            Button confirmAttackButton = CreateButton("ConfirmAttackButton", attackConfirmPanel.transform, "确定", new Vector2(0f, 0f), new Vector2(168f, 52f), new Vector2(140f, 36f));
+            Button cancelAttackButton = CreateButton("CancelAttackButton", attackConfirmPanel.transform, "取消", new Vector2(0f, 0f), new Vector2(342f, 52f), new Vector2(140f, 36f));
+            attackConfirmPanel.SetActive(false);
+
             SetSerializedValue(settlementPanel, "titleText", title);
             SetSerializedValue(settlementPanel, "bodyText", body);
             SetSerializedValue(settlementPanel, "statusText", status);
@@ -429,6 +437,10 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(settlementPanel, "recruitButton", recruitButton);
             SetSerializedValue(settlementPanel, "attackButton", attackButton);
             SetSerializedValue(settlementPanel, "diplomacyButton", diplomacyButton);
+            SetSerializedValue(settlementPanel, "attackConfirmPanel", attackConfirmPanel);
+            SetSerializedValue(settlementPanel, "attackCountInput", attackCountInput);
+            SetSerializedValue(settlementPanel, "confirmAttackButton", confirmAttackButton);
+            SetSerializedValue(settlementPanel, "cancelAttackButton", cancelAttackButton);
             SetSerializedValue(settlementPanel, "commandDispatcher", commandDispatcher);
             panel.SetActive(false);
             return settlementPanel;
@@ -767,6 +779,34 @@ namespace SpringAutumn.EditorTools
             Text text = CreateLegacyText("Label", obj.transform, label, 18, TextAnchor.MiddleCenter);
             text.color = Color.white;
             return button;
+        }
+
+        private static InputField CreateInputField(string name, Transform parent, string value, Vector2 anchoredPosition, Vector2 size)
+        {
+            GameObject root = CreatePanel(name, parent, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), anchoredPosition, size);
+            var input = root.AddComponent<InputField>();
+            input.contentType = InputField.ContentType.IntegerNumber;
+            input.characterLimit = 4;
+
+            Text label = CreateLegacyText("Title", root.transform, "派兵", 15, TextAnchor.MiddleLeft);
+            SetRect(label.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(70f, 0f));
+
+            GameObject fieldBackground = CreatePanel("Field", root.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(76f, 0f), new Vector2(size.x - 76f, size.y));
+            Image fieldImage = fieldBackground.GetComponent<Image>();
+            if (fieldImage != null)
+                fieldImage.color = new Color(0.04f, 0.04f, 0.04f, 0.85f);
+
+            Text text = CreateLegacyText("Text", fieldBackground.transform, value, 16, TextAnchor.MiddleLeft);
+            SetRect(text.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(8f, 0f), new Vector2(-12f, 0f));
+            Text placeholder = CreateLegacyText("Placeholder", fieldBackground.transform, "数量", 16, TextAnchor.MiddleLeft);
+            placeholder.color = new Color(0.65f, 0.65f, 0.65f, 0.9f);
+            SetRect(placeholder.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(8f, 0f), new Vector2(-12f, 0f));
+
+            input.targetGraphic = fieldImage;
+            input.textComponent = text;
+            input.placeholder = placeholder;
+            input.text = value;
+            return input;
         }
 
         private static void SetButtonColor(Button button, Color color)

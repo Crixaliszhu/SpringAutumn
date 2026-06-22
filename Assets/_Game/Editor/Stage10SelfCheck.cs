@@ -173,8 +173,20 @@ namespace SpringAutumn.EditorTools
                 app.Engine.EnqueueCommand(move);
                 app.Engine.NextMonth();
 
+                report.Check(world.Settlements.Get("V_NEU_001").OwnerId == "PLAYER"
+                    && world.Settlements.Get("V_NEU_002").OwnerId == "NEUTRAL"
+                    && world.Regions.Get("NEU_R01").OwnerId == "NEUTRAL",
+                    "Core Loop", "单村占领不连带整区", "单村占领错误地改变了其他据点或区域");
+
+                SettlementState capturedVillage = world.Settlements.Get("V_NEU_001");
+                capturedVillage.Garrison = Math.Max(capturedVillage.Garrison, 40);
+                var secondMove = new MoveArmyCommand("PLAYER", "V_NEU_001", "NEU_R01", "V_NEU_002", 15, config);
+                report.Check(secondMove.Validate(world), "Core Loop", "区域内继续出兵可提交", "区域内继续出兵无法提交");
+                app.Engine.EnqueueCommand(secondMove);
+                app.Engine.NextMonth();
+
                 report.Check(captured && world.Regions.Get("NEU_R01").OwnerId == "PLAYER",
-                    "Core Loop", "移动军队并攻占中立区域成功", "移动/战斗/占领流程未完成");
+                    "Core Loop", "全区域据点占领后区域易主", "全据点占领后区域未易主");
 
                 report.Check(app.Save(3), "Save", "临时槽位保存成功", "临时槽位保存失败");
                 report.Check(app.LoadGame(3) != null, "Save", "临时槽位读取成功", "临时槽位读取失败");

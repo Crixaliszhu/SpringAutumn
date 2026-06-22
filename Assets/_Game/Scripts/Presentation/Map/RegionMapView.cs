@@ -77,7 +77,7 @@ namespace SpringAutumn.Presentation.Map
             int armyIndex = 0;
             foreach (var army in world.Armies.GetAll())
             {
-                if (army.CurrentRegionId == _regionId && army.Status != ArmyStatus.Disbanded)
+                if (army.CurrentRegionId == _regionId && IsActiveArmyOnMap(army))
                 {
                     RefreshArmy(army, armyIndex);
                     armyIndex++;
@@ -135,6 +135,16 @@ namespace SpringAutumn.Presentation.Map
             int row = index / 3;
             int col = index % 3;
             return new Vector3(-1.6f + col * 0.55f, 1.45f - row * 0.48f, -0.12f);
+        }
+
+        private static bool IsActiveArmyOnMap(ArmyState army)
+        {
+            if (army == null || army.Soldiers <= 0)
+                return false;
+
+            return army.Status == ArmyStatus.Marching
+                || army.Status == ArmyStatus.Sieging
+                || army.Status == ArmyStatus.Idle;
         }
 
         private static void HideInactive<T>(Dictionary<string, T> views, HashSet<string> visibleIds) where T : MonoBehaviour

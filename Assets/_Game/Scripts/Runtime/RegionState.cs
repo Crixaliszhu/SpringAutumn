@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace SpringAutumn.Runtime
 {
-    /// <summary>战略区域运行时状态。AI 以 Region 为战争目标单位，"城决定区域归属"。</summary>
+    /// <summary>战略区域运行时状态。AI 以 Region 为战争目标单位，区域归属由全部据点归属共同决定。</summary>
     public class RegionState : Entity
     {
         public string OwnerId;
