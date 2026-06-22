@@ -2,11 +2,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
+using SpringAutumn.Presentation.Bootstrap;
 
 namespace SpringAutumn.Presentation.UI
 {
     public class HudView : MonoBehaviour
     {
+        private const int DefaultSlot = 1;
+
         [SerializeField] private TMP_Text dateText;
         [SerializeField] private TMP_Text resourceText;
         [SerializeField] private Button pauseButton;
@@ -17,6 +20,13 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private GameObject menuPanel;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private Button resumeButton;
+        [SerializeField] private GameLauncher launcher;
+        [SerializeField] private SceneBindingBootstrap sceneBinding;
+        [SerializeField] private Button saveButton;
+        [SerializeField] private Button loadButton;
+        [SerializeField] private Button closeMenuButton;
+        [SerializeField] private TMP_Text menuStatusText;
+        [SerializeField] private int saveSlot = DefaultSlot;
         [SerializeField] private Color normalButtonColor = new Color(0f, 0f, 0f, 0.75f);
         [SerializeField] private Color selectedButtonColor = new Color(0.55f, 0.42f, 0.16f, 0.95f);
 
@@ -32,8 +42,13 @@ namespace SpringAutumn.Presentation.UI
             speed2Button?.onClick.AddListener(() => SetSpeed(2f));
             speed3Button?.onClick.AddListener(() => SetSpeed(3f));
             menuButton?.onClick.AddListener(ToggleMenu);
+            saveButton?.onClick.AddListener(SaveGame);
+            loadButton?.onClick.AddListener(LoadGame);
+            closeMenuButton?.onClick.AddListener(CloseMenu);
             if (pausePanel != null)
                 pausePanel.SetActive(false);
+            if (menuPanel != null)
+                menuPanel.SetActive(false);
             UpdateSpeedButtons();
             Refresh();
         }
@@ -110,6 +125,38 @@ namespace SpringAutumn.Presentation.UI
         {
             if (menuPanel != null)
                 menuPanel.SetActive(!menuPanel.activeSelf);
+        }
+
+        private void CloseMenu()
+        {
+            if (menuPanel != null)
+                menuPanel.SetActive(false);
+        }
+
+        private void SaveGame()
+        {
+            bool ok = launcher != null ? launcher.SaveGame(saveSlot) : _application != null && _application.Save(saveSlot);
+            SetMenuStatus(ok ? $"已保存到槽位 {saveSlot}" : "保存失败");
+        }
+
+        private void LoadGame()
+        {
+            bool ok = launcher != null && launcher.LoadGame(saveSlot);
+            if (!ok)
+            {
+                SetMenuStatus(launcher?.Application?.SaveManager?.LastError ?? "读取失败");
+                return;
+            }
+
+            sceneBinding?.RefreshScene();
+            Refresh();
+            SetMenuStatus($"已读取槽位 {saveSlot}");
+        }
+
+        private void SetMenuStatus(string text)
+        {
+            if (menuStatusText != null)
+                menuStatusText.text = text;
         }
 
         private void UpdateSpeedButtons()

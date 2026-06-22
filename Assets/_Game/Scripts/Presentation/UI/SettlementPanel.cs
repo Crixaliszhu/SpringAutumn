@@ -4,6 +4,7 @@ using SpringAutumn.Bootstrap;
 using SpringAutumn.Commands;
 using SpringAutumn.Core.Events;
 using SpringAutumn.Presentation.Input;
+using SpringAutumn.Presentation.Map;
 
 namespace SpringAutumn.Presentation.UI
 {
@@ -28,6 +29,7 @@ namespace SpringAutumn.Presentation.UI
             commandDispatcher?.Bind(application);
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
             _application.Events.Subscribe<MonthChanged>(OnMonthChanged);
+            _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
             buildButton?.onClick.AddListener(BuildDefault);
             recruitButton?.onClick.AddListener(RecruitDefault);
             gameObject.SetActive(false);
@@ -87,13 +89,23 @@ namespace SpringAutumn.Presentation.UI
         {
             _application?.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
             _application?.Events.Unsubscribe<MonthChanged>(OnMonthChanged);
+            _application?.Events.Unsubscribe<MapLayerChanged>(OnMapLayerChanged);
         }
 
         private void OnSelectionChanged(SelectionChanged evt)
         {
             if (evt.Type != SelectionType.City && evt.Type != SelectionType.Village)
+            {
+                Hide();
                 return;
+            }
             Show(evt.Id);
+        }
+
+        private void OnMapLayerChanged(MapLayerChanged evt)
+        {
+            if (evt.Layer != MapLayer.Region)
+                Hide();
         }
 
         private void OnMonthChanged(MonthChanged evt)
@@ -118,6 +130,12 @@ namespace SpringAutumn.Presentation.UI
             }
             SetStatus(settlement.OwnerId == PlayerNationId ? "选择建设或征兵" : "非玩家据点不可操作");
             gameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            _settlementId = null;
+            gameObject.SetActive(false);
         }
 
         private void BuildDefault()

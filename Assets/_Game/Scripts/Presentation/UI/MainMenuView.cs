@@ -6,26 +6,74 @@ namespace SpringAutumn.Presentation.UI
 {
     public class MainMenuView : MonoBehaviour
     {
+        private const int DefaultSlot = 1;
+
         [SerializeField] private GameLauncher launcher;
+        [SerializeField] private SceneBindingBootstrap sceneBinding;
         [SerializeField] private Button startButton;
         [SerializeField] private Button loadButton;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button exitButton;
         [SerializeField] private GameObject settingsPanel;
+        [SerializeField] private Text statusText;
+        [SerializeField] private int saveSlot = DefaultSlot;
 
         private void Awake()
         {
+            ResolveReferences();
             startButton?.onClick.AddListener(OnStart);
-            loadButton?.onClick.AddListener(() => launcher?.LoadGame(GameApplicationSlot));
+            loadButton?.onClick.AddListener(OnLoad);
             settingsButton?.onClick.AddListener(ToggleSettings);
             exitButton?.onClick.AddListener(OnExit);
+            if (settingsPanel != null)
+                settingsPanel.SetActive(false);
         }
 
-        private const int GameApplicationSlot = 1;
+        private void OnDestroy()
+        {
+            startButton?.onClick.RemoveListener(OnStart);
+            loadButton?.onClick.RemoveListener(OnLoad);
+            settingsButton?.onClick.RemoveListener(ToggleSettings);
+            exitButton?.onClick.RemoveListener(OnExit);
+        }
+
+        private void ResolveReferences()
+        {
+            if (launcher == null)
+                launcher = FindObjectOfType<GameLauncher>();
+            if (sceneBinding == null)
+                sceneBinding = FindObjectOfType<SceneBindingBootstrap>();
+        }
 
         private void OnStart()
         {
-            launcher?.NewGame();
+            if (launcher == null)
+            {
+                SetStatus("启动器缺失");
+                return;
+            }
+
+            launcher.NewGame();
+            sceneBinding?.BindScene();
+            gameObject.SetActive(false);
+        }
+
+        private void OnLoad()
+        {
+            if (launcher == null)
+            {
+                SetStatus("启动器缺失");
+                return;
+            }
+
+            if (!launcher.LoadGame(saveSlot))
+            {
+                SetStatus(launcher.Application?.SaveManager?.LastError ?? "读取失败");
+                return;
+            }
+
+            sceneBinding?.BindScene();
+            sceneBinding?.RefreshScene();
             gameObject.SetActive(false);
         }
 
@@ -39,6 +87,12 @@ namespace SpringAutumn.Presentation.UI
         {
             launcher?.ExitGame();
             Application.Quit();
+        }
+
+        private void SetStatus(string text)
+        {
+            if (statusText != null)
+                statusText.text = text;
         }
     }
 }

@@ -75,6 +75,24 @@ namespace SpringAutumn.Presentation.Bootstrap
             SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
         }
 
+        public void RefreshScene()
+        {
+            if (!_bound)
+            {
+                BindScene();
+                return;
+            }
+
+            if (launcher == null || launcher.Application?.World == null)
+                return;
+
+            mapLayerController?.ShowWorldMap();
+            hudView?.Refresh();
+
+            var world = launcher.Application.World;
+            SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
+        }
+
         private void ResolveOptionalSceneObjects()
         {
             if (settlementPanel == null)

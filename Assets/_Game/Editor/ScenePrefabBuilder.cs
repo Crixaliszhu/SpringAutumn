@@ -53,7 +53,7 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        [MenuItem("SpringAutumn/Build Scenes/Stage 1-8 Bootstrap HUD ArmyVisual")]
+        [MenuItem("SpringAutumn/Build Scenes/Stage 1-9 Bootstrap HUD ArmyMenu")]
         public static void BuildStage1And2()
         {
             EnsureFolders();
@@ -80,7 +80,7 @@ namespace SpringAutumn.EditorTools
             var bindingObject = new GameObject("SceneBindingBootstrap");
             var binding = bindingObject.AddComponent<SceneBindingBootstrap>();
             SetSerializedValue(binding, "launcher", launcher);
-            SetSerializedValue(binding, "startNewGameOnAwake", true);
+            SetSerializedValue(binding, "startNewGameOnAwake", false);
 
             CreateEventSystem();
 
@@ -106,8 +106,14 @@ namespace SpringAutumn.EditorTools
             Button menuButton = CreateButton("MenuButton", hudRoot.transform, "菜单", new Vector2(1f, 1f), new Vector2(-96f, -14f), new Vector2(72f, 32f));
             SetButtonColor(speed1Button, new Color(0.55f, 0.42f, 0.16f, 0.95f));
 
-            GameObject menuPanel = CreatePanel("MenuPanel", canvas.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-300f, -220f), new Vector2(260f, 160f));
-            CreateText("MenuPanelText", menuPanel.transform, "菜单占位\n后续接入主菜单/存档", 20, TextAlignmentOptions.Center);
+            GameObject menuPanel = CreatePanel("MenuPanel", canvas.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-300f, -250f), new Vector2(260f, 220f));
+            TMP_Text menuTitle = CreateText("MenuPanelText", menuPanel.transform, "游戏菜单", 20, TextAlignmentOptions.Center);
+            SetRect(menuTitle.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(0f, 30f));
+            Button saveButton = CreateButton("SaveButton", menuPanel.transform, "保存", new Vector2(0f, 1f), new Vector2(26f, -58f), new Vector2(96f, 34f));
+            Button loadButton = CreateButton("LoadButton", menuPanel.transform, "读档", new Vector2(0f, 1f), new Vector2(138f, -58f), new Vector2(96f, 34f));
+            Button closeMenuButton = CreateButton("CloseMenuButton", menuPanel.transform, "关闭", new Vector2(0f, 1f), new Vector2(82f, -104f), new Vector2(96f, 34f));
+            TMP_Text menuStatusText = CreateText("MenuStatusText", menuPanel.transform, "槽位 1", 15, TextAlignmentOptions.Center);
+            SetRect(menuStatusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 18f), new Vector2(0f, 28f));
             menuPanel.SetActive(false);
 
             GameObject pausePanel = CreatePanel("PausePanel", canvas.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 200f));
@@ -127,6 +133,13 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(hud, "menuPanel", menuPanel);
             SetSerializedValue(hud, "pausePanel", pausePanel);
             SetSerializedValue(hud, "resumeButton", resumeButton);
+            SetSerializedValue(hud, "launcher", launcher);
+            SetSerializedValue(hud, "sceneBinding", binding);
+            SetSerializedValue(hud, "saveButton", saveButton);
+            SetSerializedValue(hud, "loadButton", loadButton);
+            SetSerializedValue(hud, "closeMenuButton", closeMenuButton);
+            SetSerializedValue(hud, "menuStatusText", menuStatusText);
+            SetSerializedValue(hud, "saveSlot", GameApplication.AutoSaveSlot);
 
             GameObject messagePanel = CreatePanel("MessagePanel", canvas.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(320f, -190f));
             var messageSystem = messagePanel.AddComponent<MessageSystem>();
@@ -171,12 +184,14 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(binding, "mapLayerController", mapLayerController);
             SetSerializedValue(binding, "selectionManager", selectionManager);
             SetSerializedValue(binding, "statusText", statusText);
+
+            CreateMainMenu(canvas.transform, launcher, binding);
             EditorSceneManager.SaveScene(scene, BootstrapScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BootstrapScenePath, true) };
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SpringAutumn] Stage 1-8 scene generated: " + BootstrapScenePath);
+            Debug.Log("[SpringAutumn] Stage 1-9 scene generated: " + BootstrapScenePath);
         }
 
         private static void EnsureFolders()
@@ -185,6 +200,48 @@ namespace SpringAutumn.EditorTools
             Directory.CreateDirectory(PrefabDir);
             Directory.CreateDirectory(MapPrefabDir);
             Directory.CreateDirectory(FontDir);
+        }
+
+        private static void CreateMainMenu(Transform canvasTransform, GameLauncher launcher, SceneBindingBootstrap binding)
+        {
+            GameObject root = CreatePanel("MainMenu", canvasTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var background = root.GetComponent<Image>();
+            if (background != null)
+                background.color = new Color(0.02f, 0.03f, 0.02f, 0.96f);
+            var menu = root.AddComponent<MainMenuView>();
+
+            TMP_Text title = CreateText("Title", root.transform, "春秋问鼎", 42, TextAlignmentOptions.Center);
+            SetCenteredRect(title.rectTransform, new Vector2(0f, 150f), new Vector2(360f, 60f));
+
+            TMP_Text subtitle = CreateText("Subtitle", root.transform, "从流民村开始，问鼎天下", 18, TextAlignmentOptions.Center);
+            SetCenteredRect(subtitle.rectTransform, new Vector2(0f, 102f), new Vector2(420f, 36f));
+
+            Button startButton = CreateButton("StartButton", root.transform, "开始游戏", new Vector2(0.5f, 0.5f), new Vector2(90f, 46f), new Vector2(180f, 42f));
+            SetCenteredRect(startButton.GetComponent<RectTransform>(), new Vector2(0f, 42f), new Vector2(180f, 42f));
+            Button loadButton = CreateButton("LoadButton", root.transform, "读取槽位 1", new Vector2(0.5f, 0.5f), new Vector2(90f, -6f), new Vector2(180f, 42f));
+            SetCenteredRect(loadButton.GetComponent<RectTransform>(), new Vector2(0f, -8f), new Vector2(180f, 42f));
+            Button settingsButton = CreateButton("SettingsButton", root.transform, "设置", new Vector2(0.5f, 0.5f), new Vector2(90f, -58f), new Vector2(180f, 42f));
+            SetCenteredRect(settingsButton.GetComponent<RectTransform>(), new Vector2(0f, -58f), new Vector2(180f, 42f));
+            Button exitButton = CreateButton("ExitButton", root.transform, "退出", new Vector2(0.5f, 0.5f), new Vector2(90f, -110f), new Vector2(180f, 42f));
+            SetCenteredRect(exitButton.GetComponent<RectTransform>(), new Vector2(0f, -108f), new Vector2(180f, 42f));
+
+            Text statusText = CreateLegacyText("StatusText", root.transform, "", 16, TextAnchor.MiddleCenter);
+            SetCenteredRect(statusText.rectTransform, new Vector2(0f, -164f), new Vector2(420f, 36f));
+
+            GameObject settingsPanel = CreatePanel("SettingsPanel", root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -210f), new Vector2(360f, 52f));
+            Text settingsText = CreateLegacyText("SettingsText", settingsPanel.transform, "设置项后续接入；当前版本使用默认配置", 15, TextAnchor.MiddleCenter);
+            SetRect(settingsText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            settingsPanel.SetActive(false);
+
+            SetSerializedValue(menu, "launcher", launcher);
+            SetSerializedValue(menu, "sceneBinding", binding);
+            SetSerializedValue(menu, "startButton", startButton);
+            SetSerializedValue(menu, "loadButton", loadButton);
+            SetSerializedValue(menu, "settingsButton", settingsButton);
+            SetSerializedValue(menu, "exitButton", exitButton);
+            SetSerializedValue(menu, "settingsPanel", settingsPanel);
+            SetSerializedValue(menu, "statusText", statusText);
+            SetSerializedValue(menu, "saveSlot", GameApplication.AutoSaveSlot);
         }
 
         private static Canvas CreateCanvas(Camera worldCamera)

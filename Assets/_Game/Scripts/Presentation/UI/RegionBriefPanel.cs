@@ -29,6 +29,7 @@ namespace SpringAutumn.Presentation.UI
         {
             _application = application;
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
+            _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
             enterRegionButton?.onClick.AddListener(EnterRegion);
             diplomacyButton?.onClick.AddListener(() => ShowPlaceholder("外交功能后续接入"));
             attackButton?.onClick.AddListener(DispatchScoutArmy);
@@ -38,13 +39,23 @@ namespace SpringAutumn.Presentation.UI
         private void OnDestroy()
         {
             _application?.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
+            _application?.Events.Unsubscribe<MapLayerChanged>(OnMapLayerChanged);
         }
 
         private void OnSelectionChanged(SelectionChanged evt)
         {
             if (evt.Type != SelectionType.Region)
+            {
+                Hide();
                 return;
+            }
             Show(evt.Id);
+        }
+
+        private void OnMapLayerChanged(MapLayerChanged evt)
+        {
+            if (evt.Layer != MapLayer.World)
+                Hide();
         }
 
         public void Show(string regionId)
@@ -91,6 +102,13 @@ namespace SpringAutumn.Presentation.UI
                 return;
 
             mapLayerController?.EnterRegion(_regionId);
+            Hide();
+        }
+
+        public void Hide()
+        {
+            _regionId = null;
+            _briefText = null;
             gameObject.SetActive(false);
         }
 

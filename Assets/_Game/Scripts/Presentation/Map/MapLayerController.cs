@@ -6,6 +6,12 @@ using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Presentation.Map
 {
+    public struct MapLayerChanged : IGameEvent
+    {
+        public MapLayer Layer;
+        public string RegionId;
+    }
+
     public enum MapLayer
     {
         None,
@@ -53,6 +59,7 @@ namespace SpringAutumn.Presentation.Map
             SetActive(regionMapView, false);
             cameraManager?.SwitchToWorld();
             worldMapView?.Refresh();
+            PublishLayerChanged();
         }
 
         public void EnterRegion(string regionId)
@@ -68,6 +75,7 @@ namespace SpringAutumn.Presentation.Map
             SetActive(regionMapView, true);
             cameraManager?.SwitchToRegion(regionMapView != null ? regionMapView.transform.position : Vector3.zero);
             regionMapView?.ShowRegion(regionId);
+            PublishLayerChanged();
         }
 
         public void Refresh()
@@ -87,6 +95,15 @@ namespace SpringAutumn.Presentation.Map
         private void OnWorldChanged<T>(T evt) where T : IGameEvent
         {
             Refresh();
+        }
+
+        private void PublishLayerChanged()
+        {
+            Application?.Events.Publish(new MapLayerChanged
+            {
+                Layer = CurrentLayer,
+                RegionId = CurrentRegionId
+            });
         }
     }
 }
