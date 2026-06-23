@@ -69,6 +69,7 @@ namespace SpringAutumn.Presentation.Bootstrap
             messageSystem?.Bind(launcher.Application);
             regionBriefPanel?.Bind(launcher.Application);
             settlementPanel?.Bind(launcher.Application);
+            EnsureGameOverView();
             _bound = true;
 
             var world = launcher.Application.World;
@@ -91,6 +92,19 @@ namespace SpringAutumn.Presentation.Bootstrap
 
             var world = launcher.Application.World;
             SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
+        }
+
+        private GameObject _gameOverViewObject;
+
+        private void EnsureGameOverView()
+        {
+            if (_gameOverViewObject != null)
+                return;
+
+            _gameOverViewObject = new GameObject("GameOverView");
+            _gameOverViewObject.transform.SetParent(transform, false);
+            var view = _gameOverViewObject.AddComponent<GameOverView>();
+            view.Bind(launcher.Application, launcher, this);
         }
 
         private void ResolveOptionalSceneObjects()

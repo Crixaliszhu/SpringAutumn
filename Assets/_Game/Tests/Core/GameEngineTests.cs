@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using SpringAutumn.Core.Engine;
+using SpringAutumn.Core.Events;
 using SpringAutumn.Runtime;
 using SpringAutumn.Systems;
 
@@ -44,6 +45,67 @@ namespace SpringAutumn.Tests.Core
             engine.Pause();
             engine.NextMonth();
             Assert.AreEqual(1, engine.World.Time.Month, "Paused engine should not advance time");
+        }
+
+        [Test]
+        public void NextMonth_PlayerOwnsAllSettlements_EndsWithVictory()
+        {
+            var world = new WorldRuntime();
+            world.Nations.Add(new NationState("PLAYER"));
+            world.Settlements.Add(new SettlementState("S1") { OwnerId = "PLAYER" });
+            world.Settlements.Add(new SettlementState("S2") { OwnerId = "PLAYER" });
+
+            var events = new EventBus();
+            bool? playerWon = null;
+            events.Subscribe<GameEnded>(e => playerWon = e.PlayerWon);
+
+            var engine = new GameEngine();
+            engine.Initialize(world, new SystemManager(), events);
+            engine.NextMonth();
+
+            Assert.AreEqual(GameState.GameOver, engine.State);
+            Assert.IsTrue(playerWon.HasValue && playerWon.Value, "占领全部据点应判定为胜利");
+        }
+
+        [Test]
+        public void NextMonth_PlayerOwnsNoSettlements_EndsWithDefeat()
+        {
+            var world = new WorldRuntime();
+            world.Nations.Add(new NationState("PLAYER"));
+            world.Nations.Add(new NationState("QIN"));
+            world.Settlements.Add(new SettlementState("S1") { OwnerId = "QIN" });
+
+            var events = new EventBus();
+            bool? playerWon = null;
+            events.Subscribe<GameEnded>(e => playerWon = e.PlayerWon);
+
+            var engine = new GameEngine();
+            engine.Initialize(world, new SystemManager(), events);
+            engine.NextMonth();
+
+            Assert.AreEqual(GameState.GameOver, engine.State);
+            Assert.IsTrue(playerWon.HasValue && !playerWon.Value, "失去全部据点应判定为失败");
+        }
+
+        [Test]
+        public void NextMonth_MixedOwnership_DoesNotEndGame()
+        {
+            var world = new WorldRuntime();
+            world.Nations.Add(new NationState("PLAYER"));
+            world.Nations.Add(new NationState("QIN"));
+            world.Settlements.Add(new SettlementState("S1") { OwnerId = "PLAYER" });
+            world.Settlements.Add(new SettlementState("S2") { OwnerId = "QIN" });
+
+            bool ended = false;
+            var events = new EventBus();
+            events.Subscribe<GameEnded>(_ => ended = true);
+
+            var engine = new GameEngine();
+            engine.Initialize(world, new SystemManager(), events);
+            engine.NextMonth();
+
+            Assert.AreEqual(GameState.Running, engine.State);
+            Assert.IsFalse(ended, "仍有他国据点时游戏不应结束");
         }
 
         [Test]

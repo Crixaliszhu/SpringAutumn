@@ -57,4 +57,10 @@ namespace SpringAutumn.Core.Events
     {
         public string NationId;
     }
+
+    /// <summary>游戏结束。PlayerWon 为 true 表示玩家一统天下，false 表示玩家败亡。</summary>
+    public struct GameEnded : IGameEvent
+    {
+        public bool PlayerWon;
+    }
 }

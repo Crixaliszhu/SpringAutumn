@@ -11,6 +11,8 @@ namespace SpringAutumn.Core.Engine
     /// </summary>
     public class GameEngine
     {
+        private const string PlayerNationId = "PLAYER";
+
         public GameState State { get; private set; } = GameState.None;
         public WorldRuntime World { get; private set; }
         public SystemManager Systems { get; private set; }
@@ -47,6 +49,9 @@ namespace SpringAutumn.Core.Engine
 
             // 发布 MonthChanged 事件（需求 11.2）
             Events.Publish(new MonthChanged { Year = World.Time.Year, Month = World.Time.Month });
+
+            // 月度结算后判定游戏是否结束（玩家一统天下 / 败亡）。
+            CheckGameEnd();
         }
 
         public void Pause()
@@ -86,6 +91,42 @@ namespace SpringAutumn.Core.Engine
                         $"command rejected: {cmd.GetType().Name} from {cmd.NationId}");
                 }
             }
+        }
+
+        /// <summary>
+        /// 判定游戏结束：玩家占领全部据点为胜利，玩家失去全部据点为失败。
+        /// 仅在世界中存在 PLAYER 势力且有据点时评估，避免空世界（测试）误触发。
+        /// </summary>
+        private void CheckGameEnd()
+        {
+            if (State == GameState.GameOver || World == null)
+                return;
+            if (!World.Nations.Contains(PlayerNationId))
+                return;
+
+            int total = 0;
+            int playerOwned = 0;
+            foreach (var settlement in World.Settlements.GetAll())
+            {
+                total++;
+                if (settlement.OwnerId == PlayerNationId)
+                    playerOwned++;
+            }
+
+            if (total == 0)
+                return;
+
+            bool playerWon;
+            if (playerOwned == total)
+                playerWon = true;
+            else if (playerOwned == 0)
+                playerWon = false;
+            else
+                return;
+
+            State = GameState.GameOver;
+            Events.Publish(new GameEnded { PlayerWon = playerWon });
+            GameLogger.Log(LogModule.Engine, playerWon ? "game over: player unified the realm" : "game over: player defeated");
         }
     }
 }
