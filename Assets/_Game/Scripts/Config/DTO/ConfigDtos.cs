@@ -26,6 +26,10 @@ namespace SpringAutumn.Config
         public List<string> villageIds = new List<string>();
         public List<string> neighborRegionIds = new List<string>();
         public bool isFrontier;
+        // 天下地图布局坐标（格子单位，x 向右、y 向上）。用于让显示位置贴合拓扑邻接关系。
+        // 全部区域坐标均为 0 时，视为未配置，地图回退到旧的序号网格布局。
+        public float mapX;
+        public float mapY;
     }
 
     [Serializable]

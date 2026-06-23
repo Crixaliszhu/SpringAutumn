@@ -180,6 +180,7 @@ namespace SpringAutumn.Tests.Config
             {
                 id = r.id, name = r.name, ownerId = r.ownerId, cityId = r.cityId,
                 isFrontier = r.isFrontier,
+                mapX = r.mapX, mapY = r.mapY,
                 villageIds = new List<string>(r.villageIds),
                 neighborRegionIds = new List<string>(r.neighborRegionIds)
             };
