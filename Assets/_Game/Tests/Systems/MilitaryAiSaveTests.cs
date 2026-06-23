@@ -24,21 +24,22 @@ namespace SpringAutumn.Tests.Systems
             => new WorldFactory().CreateNewWorld(LoadConfig());
 
         [Test]
-        public void M6_MoveArmyCommand_RespectsDrawLimitAndMinimumGarrison()
+        public void M6_MoveArmyCommand_AllowsFullGarrisonDeployment()
         {
             var config = LoadConfig();
             var world = NewWorld();
             var source = world.Settlements.Get("V_PLAYER_001");
             source.Garrison = 20;
 
-            var tooMany = new MoveArmyCommand("PLAYER", source.Id, "NEU_R01", 11, config);
-            Assert.IsFalse(tooMany.Validate(world), "抽调不得超过守军 50% 且必须保留最低驻军");
+            // 数量限制已取消：仅当派出数量超过守军总数才非法。
+            var tooMany = new MoveArmyCommand("PLAYER", source.Id, "NEU_R01", 21, config);
+            Assert.IsFalse(tooMany.Validate(world), "派出数量不得超过守军总数");
 
-            var valid = new MoveArmyCommand("PLAYER", source.Id, "NEU_R01", 10, config);
-            Assert.IsTrue(valid.Validate(world));
-            valid.Execute(world);
+            var full = new MoveArmyCommand("PLAYER", source.Id, "NEU_R01", 20, config);
+            Assert.IsTrue(full.Validate(world), "应允许全量派出守军");
+            full.Execute(world);
 
-            Assert.AreEqual(10, source.Garrison);
+            Assert.AreEqual(0, source.Garrison);
             Assert.AreEqual(1, world.Armies.Count);
         }
 

@@ -32,7 +32,8 @@ namespace SpringAutumn.Commands
 
         public static bool HasArmyCapacity(WorldRuntime world, ConfigDatabase config, string nationId)
         {
-            return config != null && CountActiveArmies(world, nationId) < config.AI.maxArmyCount;
+            // 数量限制已临时取消：不限制同时在外的军队数量（后续再恢复 maxArmyCount 限制）。
+            return true;
         }
 
         public static int GetMaxDeployableSoldiers(ConfigDatabase config, SettlementState source)
@@ -40,11 +41,9 @@ namespace SpringAutumn.Commands
             if (config == null || source == null)
                 return 0;
 
-            int minGarrison = GetMinGarrison(config.Battle, source);
-            int maxDraw = (int)(source.Garrison * config.Battle.maxConscriptRate);
-            int maxAfterReserve = source.Garrison - minGarrison;
-            int maxSoldiers = maxDraw < maxAfterReserve ? maxDraw : maxAfterReserve;
-            return maxSoldiers > 0 ? maxSoldiers : 0;
+            // 数量限制已临时取消：可全量派出守军。
+            // 后续再恢复抽调比例(maxConscriptRate)与最低驻军(minGarrison)限制（见下方保留的计算逻辑）。
+            return source.Garrison > 0 ? source.Garrison : 0;
         }
 
         public static int GetMinGarrison(BattleConfig battle, SettlementState source)
