@@ -38,8 +38,6 @@ namespace SpringAutumn.Commands
                 return false;
             if (!world.Settlements.TryGet(SourceSettlementId, out var source))
                 return false;
-            if (!world.Regions.TryGet(source.RegionId, out var currentRegion))
-                return false;
             if (!world.Regions.Contains(TargetRegionId))
                 return false;
             if (!string.IsNullOrEmpty(TargetSettlementId))
@@ -48,25 +46,21 @@ namespace SpringAutumn.Commands
                     return false;
                 if (target.RegionId != TargetRegionId || target.OwnerId == NationId)
                     return false;
+                if (!MilitaryCommandRules.CanReach(world, source, target))
+                    return false;
+            }
+            else if (!world.Regions.TryGet(source.RegionId, out var currentRegion)
+                || (!currentRegion.NeighborRegionIds.Contains(TargetRegionId) && source.RegionId != TargetRegionId))
+            {
+                return false;
             }
             if (source.OwnerId != NationId)
                 return false;
-            if (!currentRegion.NeighborRegionIds.Contains(TargetRegionId) && source.RegionId != TargetRegionId)
+
+            if (!MilitaryCommandRules.HasArmyCapacity(world, _config, NationId))
                 return false;
 
-            int activeArmies = 0;
-            foreach (var army in world.Armies.GetAll())
-            {
-                if (army.NationId == NationId && army.Status != ArmyStatus.Disbanded)
-                    activeArmies++;
-            }
-
-            if (activeArmies >= _config.AI.maxArmyCount)
-                return false;
-
-            int minGarrison = GetMinGarrison(source, _config.Battle);
-            int maxDraw = (int)(source.Garrison * _config.Battle.maxConscriptRate);
-            return Soldiers <= maxDraw && source.Garrison - Soldiers >= minGarrison;
+            return Soldiers <= MilitaryCommandRules.GetMaxDeployableSoldiers(_config, source);
         }
 
         public override void Execute(WorldRuntime world)
@@ -85,6 +79,7 @@ namespace SpringAutumn.Commands
                 TargetSettlementId = TargetSettlementId,
                 Soldiers = Soldiers,
                 Morale = 100,
+                Mission = ArmyMission.Attack,
                 Status = GetInitialStatus(source.RegionId)
             };
 
@@ -97,13 +92,6 @@ namespace SpringAutumn.Commands
                 return ArmyStatus.Marching;
 
             return string.IsNullOrEmpty(TargetSettlementId) ? ArmyStatus.Idle : ArmyStatus.Sieging;
-        }
-
-        private static int GetMinGarrison(SettlementState source, BattleConfig config)
-        {
-            if (source.Type == SettlementType.Capital) return config.minGarrisonCapital;
-            if (source.IsCity) return config.minGarrisonCity;
-            return config.minGarrisonVillage;
         }
 
         private static string CreateArmyId(WorldRuntime world)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
@@ -13,8 +14,6 @@ namespace SpringAutumn.Presentation.UI
     public class SettlementPanel : MonoBehaviour
     {
         private const string PlayerNationId = "PLAYER";
-        private const string PlayerRegionId = "PLAYER_R01";
-        private const string PlayerSourceSettlementId = "V_PLAYER_001";
         private const int DefaultAttackArmySoldiers = 10;
 
         [SerializeField] private Text titleText;
@@ -23,6 +22,7 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Button buildButton;
         [SerializeField] private Button recruitButton;
         [SerializeField] private Button attackButton;
+        [SerializeField] private Button transferButton;
         [SerializeField] private Button diplomacyButton;
         [SerializeField] private GameObject attackConfirmPanel;
         [SerializeField] private InputField attackCountInput;
@@ -32,22 +32,39 @@ namespace SpringAutumn.Presentation.UI
 
         private GameApplication _application;
         private string _settlementId;
+        private PanelMode _panelMode = PanelMode.None;
+        private string _selectedAttackSourceSettlementId;
+        private string _transferSourceSettlementId;
+        private string _transferTargetSettlementId;
+        private GameObject _choicePanel;
+        private readonly List<Button> _choiceButtons = new List<Button>();
+
+        private enum PanelMode
+        {
+            None,
+            AttackSourceSelection,
+            AttackConfirm,
+            TransferTargetSelection,
+            TransferConfirm
+        }
 
         public void Bind(GameApplication application)
         {
             ResolveReferences();
             _application = application;
             commandDispatcher?.Bind(application);
+            EnsureDynamicControls();
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
             _application.Events.Subscribe<MonthChanged>(OnMonthChanged);
             _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
             buildButton?.onClick.AddListener(BuildDefault);
             recruitButton?.onClick.AddListener(RecruitDefault);
             attackButton?.onClick.AddListener(AttackSelected);
+            transferButton?.onClick.AddListener(TransferSelected);
             diplomacyButton?.onClick.AddListener(OpenDiplomacy);
-            confirmAttackButton?.onClick.AddListener(ConfirmAttack);
+            confirmAttackButton?.onClick.AddListener(ConfirmCurrentAction);
             cancelAttackButton?.onClick.AddListener(CancelAttack);
-            HideAttackConfirm();
+            HideOperationPanels();
             gameObject.SetActive(false);
         }
 
@@ -105,6 +122,10 @@ namespace SpringAutumn.Presentation.UI
                         if (diplomacyButton == null)
                             diplomacyButton = button;
                         break;
+                    case "TransferButton":
+                        if (transferButton == null)
+                            transferButton = button;
+                        break;
                     case "ConfirmAttackButton":
                         if (confirmAttackButton == null)
                             confirmAttackButton = button;
@@ -150,6 +171,62 @@ namespace SpringAutumn.Presentation.UI
             }
         }
 
+        private void EnsureDynamicControls()
+        {
+            if (transferButton == null && diplomacyButton != null)
+            {
+                transferButton = Instantiate(diplomacyButton, diplomacyButton.transform.parent);
+                transferButton.name = "TransferButton";
+                transferButton.onClick.RemoveAllListeners();
+                SetButtonText(transferButton, "调兵");
+                transferButton.gameObject.SetActive(false);
+
+                RectTransform transferRect = transferButton.GetComponent<RectTransform>();
+                RectTransform diplomacyRect = diplomacyButton.GetComponent<RectTransform>();
+                if (transferRect != null && diplomacyRect != null)
+                {
+                    transferRect.anchorMin = diplomacyRect.anchorMin;
+                    transferRect.anchorMax = diplomacyRect.anchorMax;
+                    transferRect.pivot = diplomacyRect.pivot;
+                    transferRect.anchoredPosition = diplomacyRect.anchoredPosition;
+                    transferRect.sizeDelta = diplomacyRect.sizeDelta;
+                }
+            }
+
+            if (_choicePanel == null)
+            {
+                _choicePanel = new GameObject("MilitaryChoicePanel");
+                _choicePanel.transform.SetParent(transform, false);
+
+                var rect = _choicePanel.AddComponent<RectTransform>();
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(0f, 1f);
+                rect.pivot = new Vector2(0f, 1f);
+                rect.anchoredPosition = new Vector2(16f, -118f);
+                rect.sizeDelta = new Vector2(278f, 136f);
+
+                var image = _choicePanel.AddComponent<Image>();
+                image.color = new Color(0f, 0f, 0f, 0.35f);
+
+                var layout = _choicePanel.AddComponent<VerticalLayoutGroup>();
+                layout.padding = new RectOffset(6, 6, 6, 6);
+                layout.spacing = 6f;
+                layout.childControlWidth = true;
+                layout.childControlHeight = true;
+                layout.childForceExpandWidth = true;
+                layout.childForceExpandHeight = false;
+
+                _choicePanel.SetActive(false);
+            }
+        }
+
+        private static void SetButtonText(Button button, string text)
+        {
+            Text label = button != null ? button.GetComponentInChildren<Text>(true) : null;
+            if (label != null)
+                label.text = text;
+        }
+
         private void OnDestroy()
         {
             _application?.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
@@ -158,8 +235,9 @@ namespace SpringAutumn.Presentation.UI
             buildButton?.onClick.RemoveListener(BuildDefault);
             recruitButton?.onClick.RemoveListener(RecruitDefault);
             attackButton?.onClick.RemoveListener(AttackSelected);
+            transferButton?.onClick.RemoveListener(TransferSelected);
             diplomacyButton?.onClick.RemoveListener(OpenDiplomacy);
-            confirmAttackButton?.onClick.RemoveListener(ConfirmAttack);
+            confirmAttackButton?.onClick.RemoveListener(ConfirmCurrentAction);
             cancelAttackButton?.onClick.RemoveListener(CancelAttack);
         }
 
@@ -207,7 +285,7 @@ namespace SpringAutumn.Presentation.UI
         public void Hide()
         {
             _settlementId = null;
-            HideAttackConfirm();
+            HideOperationPanels();
             gameObject.SetActive(false);
         }
 
@@ -219,18 +297,56 @@ namespace SpringAutumn.Presentation.UI
             SetButtonVisible(buildButton, playerOwned);
             SetButtonVisible(recruitButton, playerOwned);
             SetButtonVisible(attackButton, !playerOwned);
+            SetButtonVisible(transferButton, playerOwned);
             SetButtonVisible(diplomacyButton, diplomacyAvailable);
-            if (!preserveAttackConfirm || playerOwned)
-                HideAttackConfirm();
+            LayoutActionButtons(playerOwned);
 
-            if (preserveAttackConfirm && !playerOwned)
+            bool canPreserve = preserveAttackConfirm
+                && ((playerOwned && IsTransferMode()) || (!playerOwned && IsAttackMode()));
+            if (!canPreserve)
+                HideOperationPanels();
+
+            if (canPreserve && !playerOwned && _panelMode == PanelMode.AttackConfirm)
                 SetStatus($"输入派兵数量并确认进攻，最多可派 {GetMaxAttackSoldiers()}");
+            else if (canPreserve && !playerOwned && _panelMode == PanelMode.AttackSourceSelection)
+                SetStatus("选择出兵据点");
+            else if (canPreserve && playerOwned && _panelMode == PanelMode.TransferConfirm)
+                SetStatus($"输入调兵数量并确认，最多可调 {GetMaxTransferSoldiers()}");
+            else if (canPreserve && playerOwned && _panelMode == PanelMode.TransferTargetSelection)
+                SetStatus("选择调入据点");
             else if (playerOwned)
-                SetStatus("选择建设或征兵");
+                SetStatus("选择建设、征兵或调兵");
             else if (diplomacyAvailable)
                 SetStatus("可进攻；郡城/国都可外交");
             else
                 SetStatus("可进攻");
+        }
+
+        private void LayoutActionButtons(bool playerOwned)
+        {
+            if (playerOwned)
+            {
+                SetButtonRect(buildButton, new Vector2(16f, 18f), new Vector2(124f, 38f));
+                SetButtonRect(recruitButton, new Vector2(154f, 18f), new Vector2(124f, 38f));
+                SetButtonRect(transferButton, new Vector2(16f, 64f), new Vector2(124f, 38f));
+                return;
+            }
+
+            SetButtonRect(attackButton, new Vector2(16f, 18f), new Vector2(124f, 38f));
+            SetButtonRect(diplomacyButton, new Vector2(154f, 18f), new Vector2(124f, 38f));
+        }
+
+        private static void SetButtonRect(Button button, Vector2 anchoredPosition, Vector2 sizeDelta)
+        {
+            RectTransform rect = button != null ? button.GetComponent<RectTransform>() : null;
+            if (rect == null)
+                return;
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+            rect.pivot = Vector2.one;
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = sizeDelta;
         }
 
         private static void SetButtonVisible(Button button, bool visible)
@@ -266,10 +382,89 @@ namespace SpringAutumn.Presentation.UI
 
         private void AttackSelected()
         {
-            if (!CanStartAttack())
+            if (_application?.World == null || string.IsNullOrEmpty(_settlementId))
                 return;
 
-            ShowAttackConfirm();
+            WorldRuntime world = _application.World;
+            if (!world.Settlements.TryGet(_settlementId, out var target))
+                return;
+            if (target.OwnerId == PlayerNationId)
+            {
+                SetStatus("不能攻击自己的据点");
+                return;
+            }
+
+            List<SettlementState> sources = GetAttackSources(target);
+            if (sources.Count == 0)
+            {
+                SetStatus("没有可出兵的玩家据点");
+                return;
+            }
+
+            _panelMode = PanelMode.AttackSourceSelection;
+            _selectedAttackSourceSettlementId = null;
+            HideAttackConfirmOnly();
+            ShowChoicePanel(sources, SelectAttackSource);
+            SetStatus("选择出兵据点");
+        }
+
+        private void TransferSelected()
+        {
+            if (_application?.World == null || string.IsNullOrEmpty(_settlementId))
+                return;
+
+            WorldRuntime world = _application.World;
+            if (!world.Settlements.TryGet(_settlementId, out var source))
+                return;
+            if (source.OwnerId != PlayerNationId)
+            {
+                SetStatus("只能从玩家据点调兵");
+                return;
+            }
+
+            List<SettlementState> targets = GetTransferTargets(source);
+            if (targets.Count == 0)
+            {
+                SetStatus("没有可调入的玩家据点");
+                return;
+            }
+
+            _panelMode = PanelMode.TransferTargetSelection;
+            _transferSourceSettlementId = source.Id;
+            _transferTargetSettlementId = null;
+            HideAttackConfirmOnly();
+            ShowChoicePanel(targets, SelectTransferTarget);
+            SetStatus("选择调入据点");
+        }
+
+        private void SelectAttackSource(SettlementState source)
+        {
+            if (source == null)
+                return;
+
+            _selectedAttackSourceSettlementId = source.Id;
+            _panelMode = PanelMode.AttackConfirm;
+            HideChoicePanel();
+            ShowSoldierConfirm("进攻", "派", GetMaxAttackSoldiers());
+        }
+
+        private void SelectTransferTarget(SettlementState target)
+        {
+            if (target == null)
+                return;
+
+            _transferTargetSettlementId = target.Id;
+            _panelMode = PanelMode.TransferConfirm;
+            HideChoicePanel();
+            ShowSoldierConfirm("调兵", "调", GetMaxTransferSoldiers());
+        }
+
+        private void ConfirmCurrentAction()
+        {
+            if (_panelMode == PanelMode.TransferConfirm)
+                ConfirmTransfer();
+            else
+                ConfirmAttack();
         }
 
         private void ConfirmAttack()
@@ -277,72 +472,80 @@ namespace SpringAutumn.Presentation.UI
             if (_application?.World == null || string.IsNullOrEmpty(_settlementId))
                 return;
 
-            var world = _application.World;
+            WorldRuntime world = _application.World;
             if (!world.Settlements.TryGet(_settlementId, out var target))
                 return;
-            if (target.OwnerId == PlayerNationId)
+            if (!world.Settlements.TryGet(_selectedAttackSourceSettlementId, out var source))
             {
-                SetStatus("不能攻击自己的据点");
-                return;
-            }
-            if (!world.Regions.TryGet(PlayerRegionId, out var playerRegion)
-                || !playerRegion.NeighborRegionIds.Contains(target.RegionId))
-            {
-                SetStatus("只能攻击玩家区域相邻区域内的据点");
+                SetStatus("请先选择出兵据点");
                 return;
             }
 
-            int soldiers = ReadAttackSoldiers();
+            int soldiers = ReadSoldiers();
             if (soldiers <= 0)
             {
                 SetStatus("请输入大于 0 的派兵数量");
                 return;
             }
 
-            string attackFailure = GetAttackRuleFailure(target, soldiers);
-            if (!string.IsNullOrEmpty(attackFailure))
+            string failure = GetAttackRuleFailure(source, target, soldiers);
+            if (!string.IsNullOrEmpty(failure))
             {
-                SetStatus(attackFailure);
+                SetStatus(failure);
                 return;
             }
 
-            var command = new MoveArmyCommand(PlayerNationId, PlayerSourceSettlementId, target.RegionId, target.Id, soldiers, _application.Config);
+            var command = new MoveArmyCommand(PlayerNationId, source.Id, target.RegionId, target.Id, soldiers, _application.Config);
             if (commandDispatcher == null || !commandDispatcher.Enqueue(command))
             {
                 SetStatus("进攻未通过：命令系统拒绝，请检查目标和出兵源");
                 return;
             }
 
-            HideAttackConfirm();
-            SetStatus($"已派出 {soldiers} 人进攻 {target.Id}，下月出发");
+            HideOperationPanels();
+            SetStatus($"已从 {GetSettlementName(source.Id)} 派出 {soldiers} 人进攻 {GetSettlementName(target.Id)}，下月出发");
         }
 
-        private bool CanStartAttack()
+        private void ConfirmTransfer()
         {
-            if (_application?.World == null || string.IsNullOrEmpty(_settlementId))
-                return false;
+            if (_application?.World == null)
+                return;
 
-            var world = _application.World;
-            if (!world.Settlements.TryGet(_settlementId, out var target))
-                return false;
-            if (target.OwnerId == PlayerNationId)
+            WorldRuntime world = _application.World;
+            if (!world.Settlements.TryGet(_transferSourceSettlementId, out var source)
+                || !world.Settlements.TryGet(_transferTargetSettlementId, out var target))
             {
-                SetStatus("不能攻击自己的据点");
-                return false;
-            }
-            if (!world.Regions.TryGet(PlayerRegionId, out var playerRegion)
-                || !playerRegion.NeighborRegionIds.Contains(target.RegionId))
-            {
-                SetStatus("只能攻击玩家区域相邻区域内的据点");
-                return false;
+                SetStatus("请先选择调兵据点");
+                return;
             }
 
-            return true;
+            int soldiers = ReadSoldiers();
+            if (soldiers <= 0)
+            {
+                SetStatus("请输入大于 0 的调兵数量");
+                return;
+            }
+
+            string failure = GetTransferRuleFailure(source, target, soldiers);
+            if (!string.IsNullOrEmpty(failure))
+            {
+                SetStatus(failure);
+                return;
+            }
+
+            var command = new TransferArmyCommand(PlayerNationId, source.Id, target.Id, soldiers, _application.Config);
+            if (commandDispatcher == null || !commandDispatcher.Enqueue(command))
+            {
+                SetStatus("调兵未通过：命令系统拒绝，请检查目标和出兵源");
+                return;
+            }
+
+            HideOperationPanels();
+            SetStatus($"已从 {GetSettlementName(source.Id)} 调出 {soldiers} 人前往 {GetSettlementName(target.Id)}");
         }
 
-        private void ShowAttackConfirm()
+        private void ShowSoldierConfirm(string actionName, string maxVerb, int maxSoldiers)
         {
-            int maxSoldiers = GetMaxAttackSoldiers();
             if (attackCountInput != null)
             {
                 int defaultSoldiers = maxSoldiers > 0 && maxSoldiers < DefaultAttackArmySoldiers ? maxSoldiers : DefaultAttackArmySoldiers;
@@ -350,27 +553,39 @@ namespace SpringAutumn.Presentation.UI
             }
             if (attackConfirmPanel != null)
                 attackConfirmPanel.SetActive(true);
-            SetStatus(maxSoldiers > 0 ? $"输入派兵数量并确认进攻，最多可派 {maxSoldiers}" : "当前没有可派兵力");
+            SetStatus(maxSoldiers > 0 ? $"输入{actionName}数量并确认，最多可{maxVerb} {maxSoldiers}" : "当前没有可派兵力");
         }
 
-        private void HideAttackConfirm()
+        private void HideAttackConfirmOnly()
         {
             if (attackConfirmPanel != null)
                 attackConfirmPanel.SetActive(false);
         }
 
+        private void HideOperationPanels()
+        {
+            _panelMode = PanelMode.None;
+            _selectedAttackSourceSettlementId = null;
+            _transferSourceSettlementId = null;
+            _transferTargetSettlementId = null;
+            HideAttackConfirmOnly();
+            HideChoicePanel();
+        }
+
         private bool IsAttackConfirmVisible()
         {
-            return attackConfirmPanel != null && attackConfirmPanel.activeSelf;
+            return _panelMode != PanelMode.None
+                && ((attackConfirmPanel != null && attackConfirmPanel.activeSelf)
+                    || (_choicePanel != null && _choicePanel.activeSelf));
         }
 
         private void CancelAttack()
         {
-            HideAttackConfirm();
-            SetStatus("已取消进攻");
+            HideOperationPanels();
+            SetStatus("已取消军事操作");
         }
 
-        private int ReadAttackSoldiers()
+        private int ReadSoldiers()
         {
             if (attackCountInput == null || string.IsNullOrWhiteSpace(attackCountInput.text))
                 return DefaultAttackArmySoldiers;
@@ -378,26 +593,23 @@ namespace SpringAutumn.Presentation.UI
             return int.TryParse(attackCountInput.text, out int soldiers) ? soldiers : 0;
         }
 
-        private string GetAttackRuleFailure(SettlementState target, int soldiers)
+        private string GetAttackRuleFailure(SettlementState source, SettlementState target, int soldiers)
         {
             var world = _application?.World;
             var config = _application?.Config;
             if (world == null || config == null)
                 return "进攻未通过：游戏配置未就绪";
-            if (!world.Settlements.TryGet(PlayerSourceSettlementId, out var source))
-                return $"进攻未通过：找不到出兵据点 {PlayerSourceSettlementId}";
             if (source.OwnerId != PlayerNationId)
                 return $"进攻未通过：出兵据点 {source.Id} 不属于玩家";
-            if (!world.Regions.TryGet(source.RegionId, out var sourceRegion))
-                return $"进攻未通过：找不到出兵区域 {source.RegionId}";
-            if (!sourceRegion.NeighborRegionIds.Contains(target.RegionId) && source.RegionId != target.RegionId)
+            if (target.OwnerId == PlayerNationId)
+                return "进攻未通过：不能攻击自己的据点";
+            if (!MilitaryCommandRules.CanReach(world, source, target))
                 return $"进攻未通过：{source.RegionId} 与 {target.RegionId} 不相邻";
 
-            int activeArmies = CountActivePlayerArmies(world);
-            if (activeArmies >= config.AI.maxArmyCount)
+            if (!MilitaryCommandRules.HasArmyCapacity(world, config, PlayerNationId))
                 return $"进攻未通过：军队数量已达上限 {config.AI.maxArmyCount}";
 
-            int minGarrison = GetMinGarrison(source);
+            int minGarrison = MilitaryCommandRules.GetMinGarrison(config.Battle, source);
             int maxDraw = (int)(source.Garrison * config.Battle.maxConscriptRate);
             int maxSoldiers = GetMaxAttackSoldiers(source);
             if (soldiers > maxSoldiers)
@@ -409,7 +621,7 @@ namespace SpringAutumn.Presentation.UI
         private int GetMaxAttackSoldiers()
         {
             var world = _application?.World;
-            if (world == null || !world.Settlements.TryGet(PlayerSourceSettlementId, out var source))
+            if (world == null || !world.Settlements.TryGet(_selectedAttackSourceSettlementId, out var source))
                 return 0;
 
             return GetMaxAttackSoldiers(source);
@@ -417,39 +629,185 @@ namespace SpringAutumn.Presentation.UI
 
         private int GetMaxAttackSoldiers(SettlementState source)
         {
+            return MilitaryCommandRules.GetMaxDeployableSoldiers(_application?.Config, source);
+        }
+
+        private int GetMaxTransferSoldiers()
+        {
+            var world = _application?.World;
+            if (world == null || !world.Settlements.TryGet(_transferSourceSettlementId, out var source))
+                return 0;
+
+            return MilitaryCommandRules.GetMaxDeployableSoldiers(_application?.Config, source);
+        }
+
+        private string GetTransferRuleFailure(SettlementState source, SettlementState target, int soldiers)
+        {
+            var world = _application?.World;
             var config = _application?.Config;
-            if (source == null || config == null)
-                return 0;
+            if (world == null || config == null)
+                return "调兵未通过：游戏配置未就绪";
+            if (source.Id == target.Id)
+                return "调兵未通过：来源和目标不能相同";
+            if (source.OwnerId != PlayerNationId || target.OwnerId != PlayerNationId)
+                return "调兵未通过：只能在玩家据点之间调兵";
+            if (!MilitaryCommandRules.CanReach(world, source, target))
+                return $"调兵未通过：{source.RegionId} 与 {target.RegionId} 不相邻";
+            if (!MilitaryCommandRules.HasArmyCapacity(world, config, PlayerNationId))
+                return $"调兵未通过：军队数量已达上限 {config.AI.maxArmyCount}";
 
-            int minGarrison = GetMinGarrison(source);
+            int minGarrison = MilitaryCommandRules.GetMinGarrison(config.Battle, source);
             int maxDraw = (int)(source.Garrison * config.Battle.maxConscriptRate);
-            int maxAfterReserve = source.Garrison - minGarrison;
-            int maxSoldiers = maxDraw < maxAfterReserve ? maxDraw : maxAfterReserve;
-            return maxSoldiers > 0 ? maxSoldiers : 0;
+            int maxSoldiers = MilitaryCommandRules.GetMaxDeployableSoldiers(config, source);
+            if (soldiers > maxSoldiers)
+                return $"调兵未通过：{source.Id} 守军 {source.Garrison}，最多可调 {maxSoldiers}（需留守 {minGarrison}，抽调上限 {maxDraw}）";
+
+            return null;
         }
 
-        private int GetMinGarrison(SettlementState source)
+        private List<SettlementState> GetAttackSources(SettlementState target)
         {
-            var battle = _application?.Config?.Battle;
-            if (battle == null || source == null)
-                return 0;
-            if (source.Type == SettlementType.Capital)
-                return battle.minGarrisonCapital;
-            if (source.IsCity)
-                return battle.minGarrisonCity;
-            return battle.minGarrisonVillage;
-        }
+            var results = new List<SettlementState>();
+            var world = _application?.World;
+            var config = _application?.Config;
+            if (world == null || config == null || target == null)
+                return results;
+            if (!MilitaryCommandRules.HasArmyCapacity(world, config, PlayerNationId))
+                return results;
 
-        private static int CountActivePlayerArmies(WorldRuntime world)
-        {
-            int activeArmies = 0;
-            foreach (var army in world.Armies.GetAll())
+            foreach (var source in world.Settlements.GetAll())
             {
-                if (army.NationId == PlayerNationId && army.Status != ArmyStatus.Disbanded)
-                    activeArmies++;
+                if (source.OwnerId != PlayerNationId)
+                    continue;
+                if (!MilitaryCommandRules.CanReach(world, source, target))
+                    continue;
+                if (MilitaryCommandRules.GetMaxDeployableSoldiers(config, source) <= 0)
+                    continue;
+
+                results.Add(source);
             }
 
-            return activeArmies;
+            return results;
+        }
+
+        private List<SettlementState> GetTransferTargets(SettlementState source)
+        {
+            var results = new List<SettlementState>();
+            var world = _application?.World;
+            var config = _application?.Config;
+            if (world == null || config == null || source == null)
+                return results;
+            if (MilitaryCommandRules.GetMaxDeployableSoldiers(config, source) <= 0)
+                return results;
+            if (!MilitaryCommandRules.HasArmyCapacity(world, config, PlayerNationId))
+                return results;
+
+            foreach (var target in world.Settlements.GetAll())
+            {
+                if (target.Id == source.Id || target.OwnerId != PlayerNationId)
+                    continue;
+                if (!MilitaryCommandRules.CanReach(world, source, target))
+                    continue;
+
+                results.Add(target);
+            }
+
+            return results;
+        }
+
+        private void ShowChoicePanel(List<SettlementState> options, System.Action<SettlementState> onSelected)
+        {
+            EnsureDynamicControls();
+            HideChoicePanel();
+
+            if (_choicePanel == null)
+                return;
+
+            foreach (var option in options)
+            {
+                SettlementState selected = option;
+                Button button = CreateChoiceButton($"{GetSettlementName(option.Id)}  守军 {option.Garrison}");
+                button.onClick.AddListener(() => onSelected(selected));
+                _choiceButtons.Add(button);
+            }
+
+            _choicePanel.SetActive(true);
+        }
+
+        private Button CreateChoiceButton(string label)
+        {
+            var buttonObject = new GameObject("ChoiceButton");
+            buttonObject.transform.SetParent(_choicePanel.transform, false);
+
+            var image = buttonObject.AddComponent<Image>();
+            image.color = new Color(0.18f, 0.24f, 0.24f, 0.95f);
+
+            var button = buttonObject.AddComponent<Button>();
+            var layout = buttonObject.AddComponent<LayoutElement>();
+            layout.preferredHeight = 34f;
+            layout.minHeight = 34f;
+
+            var textObject = new GameObject("Text");
+            textObject.transform.SetParent(buttonObject.transform, false);
+            var textRect = textObject.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(8f, 0f);
+            textRect.offsetMax = new Vector2(-8f, 0f);
+
+            Text text = textObject.AddComponent<Text>();
+            text.text = label;
+            text.font = ResolveFont();
+            text.fontSize = 15;
+            text.color = Color.white;
+            text.alignment = TextAnchor.MiddleCenter;
+
+            return button;
+        }
+
+        private Font ResolveFont()
+        {
+            if (bodyText != null && bodyText.font != null)
+                return bodyText.font;
+            if (statusText != null && statusText.font != null)
+                return statusText.font;
+            if (titleText != null && titleText.font != null)
+                return titleText.font;
+            return Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
+        private void HideChoicePanel()
+        {
+            for (int i = 0; i < _choiceButtons.Count; i++)
+            {
+                if (_choiceButtons[i] != null)
+                    Destroy(_choiceButtons[i].gameObject);
+            }
+
+            _choiceButtons.Clear();
+            if (_choicePanel != null)
+                _choicePanel.SetActive(false);
+        }
+
+        private bool IsAttackMode()
+        {
+            return _panelMode == PanelMode.AttackSourceSelection || _panelMode == PanelMode.AttackConfirm;
+        }
+
+        private bool IsTransferMode()
+        {
+            return _panelMode == PanelMode.TransferTargetSelection || _panelMode == PanelMode.TransferConfirm;
+        }
+
+        private string GetSettlementName(string settlementId)
+        {
+            if (_application?.Config != null
+                && _application.Config.Settlements.TryGetValue(settlementId, out var config))
+            {
+                return config.name;
+            }
+
+            return settlementId;
         }
 
         private void OpenDiplomacy()

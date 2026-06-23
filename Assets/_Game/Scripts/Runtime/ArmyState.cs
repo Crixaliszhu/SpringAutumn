@@ -11,6 +11,7 @@ namespace SpringAutumn.Runtime
         public int Soldiers;
         public int Morale = 100;
         public ArmyStatus Status = ArmyStatus.Idle;
+        public ArmyMission Mission = ArmyMission.Attack;
 
         /// <summary>行军进度（已行进的月份/段数）。</summary>
         public int MoveProgress;

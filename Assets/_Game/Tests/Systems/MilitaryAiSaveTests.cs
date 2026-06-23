@@ -64,6 +64,69 @@ namespace SpringAutumn.Tests.Systems
         }
 
         [Test]
+        public void M6_MoveArmyCommand_CanUseCapturedSettlementAsSource()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var source = world.Settlements.Get("V_NEU_001");
+            source.OwnerId = "PLAYER";
+            source.Garrison = 80;
+            var target = world.Settlements.Get("V_NEU_002");
+
+            var cmd = new MoveArmyCommand("PLAYER", source.Id, target.RegionId, target.Id, 31, config);
+
+            Assert.IsTrue(cmd.Validate(world));
+            cmd.Execute(world);
+
+            Assert.AreEqual(49, source.Garrison);
+            var army = world.Armies.GetAll().First();
+            Assert.AreEqual(source.Id, army.SourceSettlementId);
+            Assert.AreEqual(target.Id, army.TargetSettlementId);
+            Assert.AreEqual(ArmyMission.Attack, army.Mission);
+            Assert.AreEqual(ArmyStatus.Sieging, army.Status);
+        }
+
+        [Test]
+        public void M6_TransferArmyCommand_ReinforcesOwnedSettlementOnArrival()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var source = world.Settlements.Get("V_NEU_001");
+            source.OwnerId = "PLAYER";
+            source.Garrison = 60;
+            var target = world.Settlements.Get("V_PLAYER_001");
+            int targetBefore = target.Garrison;
+
+            var cmd = new TransferArmyCommand("PLAYER", source.Id, target.Id, 20, config);
+            Assert.IsTrue(cmd.Validate(world));
+            cmd.Execute(world);
+
+            Assert.AreEqual(40, source.Garrison);
+            var army = world.Armies.GetAll().First();
+            Assert.AreEqual(ArmyMission.Transfer, army.Mission);
+
+            new ArmySystem().Execute(world);
+
+            Assert.AreEqual(targetBefore + 20, target.Garrison);
+            Assert.AreEqual(0, army.Soldiers);
+            Assert.AreEqual(ArmyStatus.Disbanded, army.Status);
+        }
+
+        [Test]
+        public void M6_TransferArmyCommand_RejectsEnemyTarget()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            var source = world.Settlements.Get("V_PLAYER_001");
+            source.Garrison = 60;
+            var enemyTarget = world.Settlements.Get("V_NEU_001");
+
+            var cmd = new TransferArmyCommand("PLAYER", source.Id, enemyTarget.Id, 20, config);
+
+            Assert.IsFalse(cmd.Validate(world));
+        }
+
+        [Test]
         public void M6_BattleCapturesSettlementOnlyUntilWholeRegionIsOwned()
         {
             var config = LoadConfig();
@@ -247,6 +310,31 @@ namespace SpringAutumn.Tests.Systems
             Assert.AreEqual(-75, restored.Diplomacy.GetRelation("CHU", "PLAYER"));
             Assert.AreEqual(1, restored.Events.Active.Count);
             Assert.AreEqual(1, restored.Commands.Count);
+        }
+
+        [Test]
+        public void M8_SaveConverter_RoundTripsArmyMissionAndTransferCommand()
+        {
+            var config = LoadConfig();
+            var world = NewWorld();
+            world.Armies.Add(new ArmyState("ARMY_TRANSFER")
+            {
+                NationId = "PLAYER",
+                SourceSettlementId = "V_NEU_001",
+                CurrentRegionId = "NEU_R01",
+                TargetRegionId = "PLAYER_R01",
+                TargetSettlementId = "V_PLAYER_001",
+                Soldiers = 12,
+                Mission = ArmyMission.Transfer,
+                Status = ArmyStatus.Marching
+            });
+            world.Commands.Enqueue(new TransferArmyCommand("PLAYER", "V_NEU_001", "V_PLAYER_001", 12, config));
+
+            var converter = new SaveConverter();
+            var restored = converter.Restore(converter.ToSave(world, 1), config);
+
+            Assert.AreEqual(ArmyMission.Transfer, restored.Armies.Get("ARMY_TRANSFER").Mission);
+            Assert.IsInstanceOf<TransferArmyCommand>(restored.Commands.Peek().First());
         }
 
         [Test]

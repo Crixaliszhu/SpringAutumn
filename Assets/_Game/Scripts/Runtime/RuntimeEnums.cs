@@ -27,6 +27,13 @@ namespace SpringAutumn.Runtime
         Disbanded   // 已解散
     }
 
+    /// <summary>野战军任务类型。</summary>
+    public enum ArmyMission
+    {
+        Attack,
+        Transfer
+    }
+
     /// <summary>两国关系档位。</summary>
     public enum RelationStatus
     {

@@ -179,12 +179,14 @@ namespace SpringAutumn.EditorTools
                     "Core Loop", "单村占领不连带整区", "单村占领错误地改变了其他据点或区域");
 
                 SettlementState capturedVillage = world.Settlements.Get("V_NEU_001");
-                capturedVillage.Garrison = Math.Max(capturedVillage.Garrison, 40);
-                var secondMove = new MoveArmyCommand("PLAYER", "V_NEU_001", "NEU_R01", "V_NEU_002", 15, config);
+                capturedVillage.Garrison = Math.Max(capturedVillage.Garrison, 80);
+                var secondMove = new MoveArmyCommand("PLAYER", "V_NEU_001", "NEU_R01", "V_NEU_002", 31, config);
                 report.Check(secondMove.Validate(world), "Core Loop", "区域内继续出兵可提交", "区域内继续出兵无法提交");
                 app.Engine.EnqueueCommand(secondMove);
                 app.Engine.NextMonth();
 
+                report.Check(world.Settlements.Get("V_NEU_002").OwnerId == "PLAYER",
+                    "Core Loop", "第二个据点占领成功", "第二个据点未被占领");
                 report.Check(captured && world.Regions.Get("NEU_R01").OwnerId == "PLAYER",
                     "Core Loop", "全区域据点占领后区域易主", "全据点占领后区域未易主");
 

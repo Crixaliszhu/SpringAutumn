@@ -110,6 +110,7 @@ namespace SpringAutumn.Save
         [DataMember] public int soldiers;
         [DataMember] public int morale;
         [DataMember] public string status;
+        [DataMember] public string mission;
         [DataMember] public int moveProgress;
     }
 

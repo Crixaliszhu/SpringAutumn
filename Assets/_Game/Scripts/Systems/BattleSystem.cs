@@ -21,7 +21,7 @@ namespace SpringAutumn.Systems
         {
             foreach (var army in world.Armies.GetAll())
             {
-                if (army.Status != ArmyStatus.Sieging || army.Soldiers <= 0)
+                if (army.Mission != ArmyMission.Attack || army.Status != ArmyStatus.Sieging || army.Soldiers <= 0)
                     continue;
                 if (string.IsNullOrEmpty(army.TargetSettlementId))
                     continue;

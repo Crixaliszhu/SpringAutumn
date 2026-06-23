@@ -63,6 +63,7 @@ namespace SpringAutumn.Save
                     soldiers = army.Soldiers,
                     morale = army.Morale,
                     status = army.Status.ToString(),
+                    mission = army.Mission.ToString(),
                     moveProgress = army.MoveProgress
                 });
             }
@@ -153,6 +154,7 @@ namespace SpringAutumn.Save
                     Soldiers = a.soldiers,
                     Morale = a.morale,
                     Status = ParseEnum(a.status, ArmyStatus.Idle),
+                    Mission = ParseEnum(a.mission, ArmyMission.Attack),
                     MoveProgress = a.moveProgress
                 });
             }
@@ -251,6 +253,13 @@ namespace SpringAutumn.Save
                 data.targetSettlementId = move.TargetSettlementId;
                 data.soldiers = move.Soldiers;
             }
+            else if (command is TransferArmyCommand transfer)
+            {
+                data.type = "TransferArmy";
+                data.sourceSettlementId = transfer.SourceSettlementId;
+                data.targetSettlementId = transfer.TargetSettlementId;
+                data.soldiers = transfer.Soldiers;
+            }
             else if (command is AttackCommand attack)
             {
                 data.type = "Attack";
@@ -277,6 +286,8 @@ namespace SpringAutumn.Save
                     return new RecruitCommand(data.nationId, data.settlementId, data.count, config);
                 case "MoveArmy":
                     return new MoveArmyCommand(data.nationId, data.sourceSettlementId, data.targetRegionId, data.targetSettlementId, data.soldiers, config);
+                case "TransferArmy":
+                    return new TransferArmyCommand(data.nationId, data.sourceSettlementId, data.targetSettlementId, data.soldiers, config);
                 case "Attack":
                     return new AttackCommand(data.nationId, data.armyId, data.targetSettlementId);
                 case "Diplomacy":

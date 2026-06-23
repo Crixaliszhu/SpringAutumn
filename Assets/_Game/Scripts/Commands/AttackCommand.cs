@@ -25,6 +25,8 @@ namespace SpringAutumn.Commands
                 return false;
             if (army.NationId != NationId || army.Soldiers <= 0)
                 return false;
+            if (army.Mission != ArmyMission.Attack)
+                return false;
             if (target.OwnerId == NationId)
                 return false;
             return army.CurrentRegionId == target.RegionId;

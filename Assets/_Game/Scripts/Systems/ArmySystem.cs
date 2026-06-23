@@ -21,6 +21,11 @@ namespace SpringAutumn.Systems
                 {
                     MoveOneRegion(world, army);
                 }
+
+                if (army.Mission == ArmyMission.Transfer && army.Status != ArmyStatus.Disbanded)
+                {
+                    CompleteTransferIfArrived(world, army);
+                }
                 else if (army.Status == ArmyStatus.Retreating || army.Status == ArmyStatus.Disbanded)
                 {
                     ReturnSurvivors(world, army);
@@ -43,8 +48,30 @@ namespace SpringAutumn.Systems
             {
                 army.CurrentRegionId = army.TargetRegionId;
                 army.MoveProgress++;
-                army.Status = string.IsNullOrEmpty(army.TargetSettlementId) ? ArmyStatus.Idle : ArmyStatus.Sieging;
+                army.Status = GetArrivalStatus(army);
             }
+        }
+
+        private static ArmyStatus GetArrivalStatus(ArmyState army)
+        {
+            if (army.Mission == ArmyMission.Transfer)
+                return ArmyStatus.Idle;
+            return string.IsNullOrEmpty(army.TargetSettlementId) ? ArmyStatus.Idle : ArmyStatus.Sieging;
+        }
+
+        private static void CompleteTransferIfArrived(WorldRuntime world, ArmyState army)
+        {
+            if (army.CurrentRegionId != army.TargetRegionId || string.IsNullOrEmpty(army.TargetSettlementId))
+                return;
+
+            if (world.Settlements.TryGet(army.TargetSettlementId, out var target)
+                && target.OwnerId == army.NationId)
+            {
+                target.Garrison += army.Soldiers;
+            }
+
+            army.Soldiers = 0;
+            army.Status = ArmyStatus.Disbanded;
         }
 
         private static void ReturnSurvivors(WorldRuntime world, ArmyState army)
