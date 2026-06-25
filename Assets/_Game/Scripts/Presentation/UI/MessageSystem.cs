@@ -25,6 +25,7 @@ namespace SpringAutumn.Presentation.UI
             _application.Events.Subscribe<BuildingFinished>(OnBuildingFinished);
             _application.Events.Subscribe<RecruitFinished>(OnRecruitFinished);
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
+            _application.Events.Subscribe<GameEnded>(OnGameEnded);
         }
 
         private void OnDestroy()
@@ -38,6 +39,7 @@ namespace SpringAutumn.Presentation.UI
             _application.Events.Unsubscribe<BuildingFinished>(OnBuildingFinished);
             _application.Events.Unsubscribe<RecruitFinished>(OnRecruitFinished);
             _application.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
+            _application.Events.Unsubscribe<GameEnded>(OnGameEnded);
         }
 
         private void Add(string text)
@@ -57,5 +59,6 @@ namespace SpringAutumn.Presentation.UI
         private void OnBuildingFinished(BuildingFinished e) => Add($"{e.SettlementId} 建筑完成：{e.BuildingId}");
         private void OnRecruitFinished(RecruitFinished e) => Add($"{e.SettlementId} 征兵完成：{e.Count}");
         private void OnSelectionChanged(SelectionChanged e) => Add($"选择：{e.Type} {e.Id}");
+        private void OnGameEnded(GameEnded e) => Add(e.PlayerWon ? "★ 游戏结束：一统天下，问鼎成功！" : "☠ 游戏结束：基业尽失，败亡。");
     }
 }

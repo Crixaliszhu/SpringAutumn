@@ -44,6 +44,7 @@ namespace SpringAutumn.Presentation.UI
 
         private void OnGameEnded(GameEnded e)
         {
+            Debug.Log($"[GameOverView] GameEnded received, playerWon={e.PlayerWon}");
             Show(e.PlayerWon);
         }
 
@@ -196,7 +197,12 @@ namespace SpringAutumn.Presentation.UI
                 if (font != null)
                     return font;
             }
-            return Font.CreateDynamicFontFromOSFont((string)null, 24);
+
+            // 内置字体回退（不同 Unity 版本名称不同）。
+            Font builtin = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (builtin == null)
+                builtin = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            return builtin;
         }
     }
 }
