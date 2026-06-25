@@ -773,7 +773,8 @@ namespace SpringAutumn.Presentation.UI
                 return statusText.font;
             if (titleText != null && titleText.font != null)
                 return titleText.font;
-            return Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font cjkFont = UiTextFontResolver.GetResolvedFont();
+            return cjkFont != null ? cjkFont : Resources.GetBuiltinResource<Font>("Arial.ttf");
         }
 
         private void HideChoicePanel()

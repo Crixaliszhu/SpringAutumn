@@ -754,17 +754,24 @@ namespace SpringAutumn.EditorTools
             string windowsFontDir = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Windows), "Fonts");
             string[] candidates =
             {
-                "simhei.ttf",
-                "msyh.ttc",
-                "simsun.ttc",
-                "Deng.ttf"
+                Path.Combine(windowsFontDir, "simhei.ttf"),
+                Path.Combine(windowsFontDir, "msyh.ttc"),
+                Path.Combine(windowsFontDir, "simsun.ttc"),
+                Path.Combine(windowsFontDir, "Deng.ttf"),
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                "/System/Library/Fonts/STHeiti Medium.ttc",
+                "/System/Library/Fonts/STHeiti Light.ttc",
+                "/System/Library/Fonts/Supplemental/Songti.ttc",
+                "/Library/Fonts/NotoSansCJK-Regular.ttc",
+                "/Library/Fonts/SourceHanSansSC-Regular.otf",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
             };
 
             foreach (string candidate in candidates)
             {
-                string path = Path.Combine(windowsFontDir, candidate);
-                if (File.Exists(path))
-                    return path;
+                if (File.Exists(candidate))
+                    return candidate;
             }
 
             return null;
