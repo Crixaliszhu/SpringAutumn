@@ -13,6 +13,11 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Button enterRegionButton;
         [SerializeField] private MapLayerController mapLayerController;
 
+        [Header("面板布局（右上角，覆盖场景值）")]
+        [SerializeField] private bool overrideLayout = true;
+        [SerializeField] private Vector2 panelAnchoredPosition = new Vector2(-12f, -92f);
+        [SerializeField] private float panelScale = 0.9f;
+
         private GameApplication _application;
         private string _regionId;
         private string _briefText;
@@ -20,6 +25,8 @@ namespace SpringAutumn.Presentation.UI
         public void Bind(GameApplication application)
         {
             _application = application;
+            if (overrideLayout)
+                UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
             _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
             enterRegionButton?.onClick.AddListener(EnterRegion);

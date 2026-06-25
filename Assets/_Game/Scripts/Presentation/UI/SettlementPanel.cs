@@ -30,6 +30,11 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Button cancelAttackButton;
         [SerializeField] private UICommandDispatcher commandDispatcher;
 
+        [Header("面板布局（右上角，覆盖场景值）")]
+        [SerializeField] private bool overrideLayout = true;
+        [SerializeField] private Vector2 panelAnchoredPosition = new Vector2(-12f, -92f);
+        [SerializeField] private float panelScale = 0.9f;
+
         private GameApplication _application;
         private string _settlementId;
         private PanelMode _panelMode = PanelMode.None;
@@ -52,6 +57,8 @@ namespace SpringAutumn.Presentation.UI
         {
             ResolveReferences();
             _application = application;
+            if (overrideLayout)
+                UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
             commandDispatcher?.Bind(application);
             EnsureDynamicControls();
             _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
