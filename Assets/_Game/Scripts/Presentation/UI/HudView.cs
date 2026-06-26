@@ -34,6 +34,12 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Color normalButtonColor = new Color(0f, 0f, 0f, 0.75f);
         [SerializeField] private Color selectedButtonColor = new Color(0.55f, 0.42f, 0.16f, 0.95f);
 
+        private static readonly Vector2 MenuPanelSize = new Vector2(260f, 220f);
+        private static readonly Vector2 MenuButtonSize = new Vector2(96f, 34f);
+        private static readonly Vector2 SaveButtonPosition = new Vector2(26f, -58f);
+        private static readonly Vector2 LoadButtonPosition = new Vector2(138f, -58f);
+        private static readonly Vector2 CloseButtonPosition = new Vector2(82f, -104f);
+
         private GameApplication _application;
         private float _currentSpeed = 1f;
         private bool _listenersRegistered;
@@ -43,6 +49,7 @@ namespace SpringAutumn.Presentation.UI
             _application = application;
             RegisterButtonListeners();
             ConfigureTextLayout();
+            ConfigureMenuLayout();
             if (pausePanel != null)
                 pausePanel.SetActive(false);
             if (menuPanel != null)
@@ -69,6 +76,42 @@ namespace SpringAutumn.Presentation.UI
                 legacyResourceText.horizontalOverflow = HorizontalWrapMode.Overflow;
             if (menuStatusText != null)
                 legacyMenuStatusText = LegacyTextMirror.FromTmp(menuStatusText);
+        }
+
+        private void ConfigureMenuLayout()
+        {
+            if (menuPanel != null)
+            {
+                var panelRect = menuPanel.GetComponent<RectTransform>();
+                if (panelRect != null)
+                {
+                    panelRect.anchorMin = new Vector2(1f, 1f);
+                    panelRect.anchorMax = new Vector2(1f, 1f);
+                    panelRect.pivot = new Vector2(1f, 1f);
+                    panelRect.anchoredPosition = new Vector2(-300f, -250f);
+                    panelRect.sizeDelta = MenuPanelSize;
+                }
+            }
+
+            SetTopLeftRect(saveButton, SaveButtonPosition, MenuButtonSize);
+            SetTopLeftRect(loadButton, LoadButtonPosition, MenuButtonSize);
+            SetTopLeftRect(closeMenuButton, CloseButtonPosition, MenuButtonSize);
+        }
+
+        private static void SetTopLeftRect(Button button, Vector2 anchoredPosition, Vector2 sizeDelta)
+        {
+            if (button == null)
+                return;
+
+            var rect = button.GetComponent<RectTransform>();
+            if (rect == null)
+                return;
+
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = sizeDelta;
         }
 
         private void RegisterButtonListeners()

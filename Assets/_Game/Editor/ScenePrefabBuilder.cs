@@ -110,8 +110,11 @@ namespace SpringAutumn.EditorTools
             Text menuTitle = CreateLegacyText("MenuPanelText", menuPanel.transform, "游戏菜单", 20, TextAnchor.MiddleCenter);
             SetRect(menuTitle.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(0f, 30f));
             Button saveButton = CreateButton("SaveButton", menuPanel.transform, "保存", new Vector2(0f, 1f), new Vector2(26f, -58f), new Vector2(96f, 34f));
+            SetRect(saveButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(26f, -58f), new Vector2(96f, 34f));
             Button loadButton = CreateButton("LoadButton", menuPanel.transform, "读档", new Vector2(0f, 1f), new Vector2(138f, -58f), new Vector2(96f, 34f));
+            SetRect(loadButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(138f, -58f), new Vector2(96f, 34f));
             Button closeMenuButton = CreateButton("CloseMenuButton", menuPanel.transform, "关闭", new Vector2(0f, 1f), new Vector2(82f, -104f), new Vector2(96f, 34f));
+            SetRect(closeMenuButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(82f, -104f), new Vector2(96f, 34f));
             Text menuStatusText = CreateLegacyText("MenuStatusText", menuPanel.transform, "槽位 1", 15, TextAnchor.MiddleCenter);
             SetRect(menuStatusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 18f), new Vector2(0f, 28f));
             menuPanel.SetActive(false);
