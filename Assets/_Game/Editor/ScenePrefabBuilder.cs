@@ -93,10 +93,10 @@ namespace SpringAutumn.EditorTools
             GameObject hudRoot = CreatePanel("HUD", canvas.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 88f));
             var hud = hudRoot.AddComponent<HudView>();
 
-            TMP_Text dateText = CreateText("DateText", hudRoot.transform, "第1年1月", 22, TextAlignmentOptions.Left);
+            Text dateText = CreateLegacyText("DateText", hudRoot.transform, "第1年1月", 22, TextAnchor.MiddleLeft);
             SetRect(dateText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(12f, -12f), new Vector2(220f, 32f));
 
-            TMP_Text resourceText = CreateText("ResourceText", hudRoot.transform, "粮 0  钱 0  人口 0  兵 0  Region 0", 20, TextAlignmentOptions.Left);
+            Text resourceText = CreateLegacyText("ResourceText", hudRoot.transform, "粮 0  钱 0  人口 0  兵 0  Region 0", 20, TextAnchor.MiddleLeft);
             SetRect(resourceText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(240f, -14f), new Vector2(-540f, 30f));
 
             Button pauseButton = CreateButton("PauseButton", hudRoot.transform, "暂停", new Vector2(1f, 1f), new Vector2(-390f, -14f), new Vector2(72f, 32f));
@@ -107,24 +107,24 @@ namespace SpringAutumn.EditorTools
             SetButtonColor(speed1Button, new Color(0.55f, 0.42f, 0.16f, 0.95f));
 
             GameObject menuPanel = CreatePanel("MenuPanel", canvas.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-300f, -250f), new Vector2(260f, 220f));
-            TMP_Text menuTitle = CreateText("MenuPanelText", menuPanel.transform, "游戏菜单", 20, TextAlignmentOptions.Center);
+            Text menuTitle = CreateLegacyText("MenuPanelText", menuPanel.transform, "游戏菜单", 20, TextAnchor.MiddleCenter);
             SetRect(menuTitle.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(0f, 30f));
             Button saveButton = CreateButton("SaveButton", menuPanel.transform, "保存", new Vector2(0f, 1f), new Vector2(26f, -58f), new Vector2(96f, 34f));
             Button loadButton = CreateButton("LoadButton", menuPanel.transform, "读档", new Vector2(0f, 1f), new Vector2(138f, -58f), new Vector2(96f, 34f));
             Button closeMenuButton = CreateButton("CloseMenuButton", menuPanel.transform, "关闭", new Vector2(0f, 1f), new Vector2(82f, -104f), new Vector2(96f, 34f));
-            TMP_Text menuStatusText = CreateText("MenuStatusText", menuPanel.transform, "槽位 1", 15, TextAlignmentOptions.Center);
+            Text menuStatusText = CreateLegacyText("MenuStatusText", menuPanel.transform, "槽位 1", 15, TextAnchor.MiddleCenter);
             SetRect(menuStatusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 18f), new Vector2(0f, 28f));
             menuPanel.SetActive(false);
 
             GameObject pausePanel = CreatePanel("PausePanel", canvas.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(360f, 200f));
-            TMP_Text pauseTitle = CreateText("PauseTitle", pausePanel.transform, "游戏已暂停", 26, TextAlignmentOptions.Center);
+            Text pauseTitle = CreateLegacyText("PauseTitle", pausePanel.transform, "游戏已暂停", 26, TextAnchor.MiddleCenter);
             SetCenteredRect(pauseTitle.rectTransform, new Vector2(0f, 38f), new Vector2(260f, 48f));
             Button resumeButton = CreateButton("ResumeButton", pausePanel.transform, "继续游戏", new Vector2(0.5f, 0.5f), new Vector2(86f, -56f), new Vector2(160f, 44f));
             SetCenteredRect(resumeButton.GetComponent<RectTransform>(), new Vector2(0f, -48f), new Vector2(160f, 44f));
             pausePanel.SetActive(false);
 
-            SetSerializedValue(hud, "dateText", dateText);
-            SetSerializedValue(hud, "resourceText", resourceText);
+            SetSerializedValue(hud, "legacyDateText", dateText);
+            SetSerializedValue(hud, "legacyResourceText", resourceText);
             SetSerializedValue(hud, "pauseButton", pauseButton);
             SetSerializedValue(hud, "speed1Button", speed1Button);
             SetSerializedValue(hud, "speed2Button", speed2Button);
@@ -138,14 +138,14 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(hud, "saveButton", saveButton);
             SetSerializedValue(hud, "loadButton", loadButton);
             SetSerializedValue(hud, "closeMenuButton", closeMenuButton);
-            SetSerializedValue(hud, "menuStatusText", menuStatusText);
+            SetSerializedValue(hud, "legacyMenuStatusText", menuStatusText);
             SetSerializedValue(hud, "saveSlot", GameApplication.AutoSaveSlot);
 
             GameObject messagePanel = CreatePanel("MessagePanel", canvas.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(320f, -190f));
             var messageSystem = messagePanel.AddComponent<MessageSystem>();
-            TMP_Text messageText = CreateText("MessageText", messagePanel.transform, "", 18, TextAlignmentOptions.TopLeft);
+            Text messageText = CreateLegacyText("MessageText", messagePanel.transform, "", 18, TextAnchor.UpperLeft);
             SetRect(messageText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(10f, 10f), new Vector2(-20f, -20f));
-            SetSerializedValue(messageSystem, "messageText", messageText);
+            SetSerializedValue(messageSystem, "legacyMessageText", messageText);
 
             GameObject regionBriefRoot = CreatePanel("RegionBriefPanel", canvas.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-18f, -24f), new Vector2(300f, 300f));
             var regionBriefPanel = regionBriefRoot.AddComponent<RegionBriefPanel>();
@@ -168,7 +168,7 @@ namespace SpringAutumn.EditorTools
             CreateRegionMapOverlay(canvas.transform, regionMapView);
             SettlementPanel settlementPanel = CreateSettlementPanel(canvas.transform);
 
-            TMP_Text statusText = CreateText("StatusText", canvas.transform, "Initializing...", 18, TextAlignmentOptions.Right);
+            Text statusText = CreateLegacyText("StatusText", canvas.transform, "Initializing...", 18, TextAnchor.MiddleRight);
             SetRect(statusText.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-20f, 18f), new Vector2(520f, 32f));
 
             SetSerializedValue(binding, "hudView", hud);
@@ -177,7 +177,7 @@ namespace SpringAutumn.EditorTools
             SetSerializedValue(binding, "settlementPanel", settlementPanel);
             SetSerializedValue(binding, "mapLayerController", mapLayerController);
             SetSerializedValue(binding, "selectionManager", selectionManager);
-            SetSerializedValue(binding, "statusText", statusText);
+            SetSerializedValue(binding, "legacyStatusText", statusText);
 
             CreateMainMenu(canvas.transform, launcher, binding);
             EditorSceneManager.SaveScene(scene, BootstrapScenePath);
@@ -204,10 +204,10 @@ namespace SpringAutumn.EditorTools
                 background.color = new Color(0.02f, 0.03f, 0.02f, 0.96f);
             var menu = root.AddComponent<MainMenuView>();
 
-            TMP_Text title = CreateText("Title", root.transform, "春秋问鼎", 42, TextAlignmentOptions.Center);
+            Text title = CreateLegacyText("Title", root.transform, "春秋问鼎", 42, TextAnchor.MiddleCenter);
             SetCenteredRect(title.rectTransform, new Vector2(0f, 150f), new Vector2(360f, 60f));
 
-            TMP_Text subtitle = CreateText("Subtitle", root.transform, "从流民村开始，问鼎天下", 18, TextAlignmentOptions.Center);
+            Text subtitle = CreateLegacyText("Subtitle", root.transform, "从流民村开始，问鼎天下", 18, TextAnchor.MiddleCenter);
             SetCenteredRect(subtitle.rectTransform, new Vector2(0f, 102f), new Vector2(420f, 36f));
 
             Button startButton = CreateButton("StartButton", root.transform, "开始游戏", new Vector2(0.5f, 0.5f), new Vector2(90f, 46f), new Vector2(180f, 42f));
@@ -627,8 +627,10 @@ namespace SpringAutumn.EditorTools
 
             var tmp = obj.AddComponent<TextMeshProUGUI>();
             TMP_FontAsset cjkFont = GetOrCreateCjkFontAsset();
-            if (cjkFont != null)
-                tmp.font = cjkFont;
+            TMP_FontAsset primaryFont = ResolvePrimaryTmpFont(cjkFont);
+            if (primaryFont != null)
+                tmp.font = primaryFont;
+            AddTmpFallback(tmp.font, cjkFont);
             tmp.text = text;
             tmp.fontSize = fontSize;
             tmp.alignment = alignment;
@@ -639,6 +641,28 @@ namespace SpringAutumn.EditorTools
             tmp.fontStyle = FontStyles.Normal;
             tmp.fontWeight = FontWeight.Regular;
             return tmp;
+        }
+
+        private static TMP_FontAsset ResolvePrimaryTmpFont(TMP_FontAsset cjkFont)
+        {
+            TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
+            if (defaultFont != null && defaultFont != cjkFont)
+                return defaultFont;
+
+            TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            return resourceFont != null && resourceFont != cjkFont ? resourceFont : null;
+        }
+
+        private static void AddTmpFallback(TMP_FontAsset source, TMP_FontAsset fallback)
+        {
+            if (source == null || fallback == null || source == fallback)
+                return;
+
+            if (source.fallbackFontAssetTable == null)
+                source.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
+
+            if (!source.fallbackFontAssetTable.Contains(fallback))
+                source.fallbackFontAssetTable.Insert(0, fallback);
         }
 
         private static Text CreateLegacyText(string name, Transform parent, string text, int fontSize, TextAnchor alignment)

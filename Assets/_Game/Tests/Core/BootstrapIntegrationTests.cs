@@ -41,6 +41,34 @@ namespace SpringAutumn.Tests.Core
         }
 
         [Test]
+        public void M9_SaveLoad_RestoresLoyaltyBuildingsAndConstructionQueue()
+        {
+            var config = LoadConfig();
+            var storage = new MemorySaveStorage();
+            var app = CreateApp(config, storage);
+            app.NewGame();
+
+            var settlement = app.World.Settlements.Get("V_PLAYER_001");
+            settlement.Loyalty = 73;
+            settlement.Buildings.Add(new BuildingInstance("FARM", 2));
+            settlement.ConstructionQueue.Add(new ConstructionTask("FARM", 1));
+
+            Assert.IsTrue(app.Save(2));
+
+            var loadedApp = CreateApp(config, storage);
+            Assert.IsNotNull(loadedApp.LoadGame(2));
+            var loaded = loadedApp.World.Settlements.Get("V_PLAYER_001");
+
+            Assert.AreEqual(73, loaded.Loyalty);
+            Assert.AreEqual(1, loaded.Buildings.Count);
+            Assert.AreEqual("FARM", loaded.Buildings[0].BuildingId);
+            Assert.AreEqual(2, loaded.Buildings[0].Level);
+            Assert.AreEqual(1, loaded.ConstructionQueue.Count);
+            Assert.AreEqual("FARM", loaded.ConstructionQueue[0].BuildingId);
+            Assert.AreEqual(1, loaded.ConstructionQueue[0].RemainingMonths);
+        }
+
+        [Test]
         public void M9_GameLoop_PauseStopsTick()
         {
             var app = CreateApp(LoadConfig(), new MemorySaveStorage());

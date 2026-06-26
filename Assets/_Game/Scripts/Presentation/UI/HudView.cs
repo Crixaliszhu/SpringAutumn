@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using SpringAutumn.Bootstrap;
 using SpringAutumn.Presentation.Bootstrap;
+using SpringAutumn.Runtime;
 
 namespace SpringAutumn.Presentation.UI
 {
@@ -12,6 +13,8 @@ namespace SpringAutumn.Presentation.UI
 
         [SerializeField] private TMP_Text dateText;
         [SerializeField] private TMP_Text resourceText;
+        [SerializeField] private Text legacyDateText;
+        [SerializeField] private Text legacyResourceText;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button speed1Button;
         [SerializeField] private Button speed2Button;
@@ -26,31 +29,79 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Button loadButton;
         [SerializeField] private Button closeMenuButton;
         [SerializeField] private TMP_Text menuStatusText;
+        [SerializeField] private Text legacyMenuStatusText;
         [SerializeField] private int saveSlot = DefaultSlot;
         [SerializeField] private Color normalButtonColor = new Color(0f, 0f, 0f, 0.75f);
         [SerializeField] private Color selectedButtonColor = new Color(0.55f, 0.42f, 0.16f, 0.95f);
 
         private GameApplication _application;
         private float _currentSpeed = 1f;
+        private bool _listenersRegistered;
 
         public void Bind(GameApplication application)
         {
             _application = application;
-            pauseButton?.onClick.AddListener(ShowPausePanel);
-            resumeButton?.onClick.AddListener(ResumeFromPanel);
-            speed1Button?.onClick.AddListener(() => SetSpeed(1f));
-            speed2Button?.onClick.AddListener(() => SetSpeed(2f));
-            speed3Button?.onClick.AddListener(() => SetSpeed(3f));
-            menuButton?.onClick.AddListener(ToggleMenu);
-            saveButton?.onClick.AddListener(SaveGame);
-            loadButton?.onClick.AddListener(LoadGame);
-            closeMenuButton?.onClick.AddListener(CloseMenu);
+            RegisterButtonListeners();
+            ConfigureTextLayout();
             if (pausePanel != null)
                 pausePanel.SetActive(false);
             if (menuPanel != null)
                 menuPanel.SetActive(false);
             UpdateSpeedButtons();
             Refresh();
+        }
+
+        private void ConfigureTextLayout()
+        {
+            if (dateText != null)
+            {
+                dateText.enableWordWrapping = false;
+                legacyDateText = LegacyTextMirror.FromTmp(dateText);
+            }
+            if (legacyDateText != null)
+                legacyDateText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            if (resourceText != null)
+            {
+                resourceText.enableWordWrapping = false;
+                legacyResourceText = LegacyTextMirror.FromTmp(resourceText);
+            }
+            if (legacyResourceText != null)
+                legacyResourceText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            if (menuStatusText != null)
+                legacyMenuStatusText = LegacyTextMirror.FromTmp(menuStatusText);
+        }
+
+        private void RegisterButtonListeners()
+        {
+            if (_listenersRegistered)
+                return;
+
+            pauseButton?.onClick.AddListener(ShowPausePanel);
+            resumeButton?.onClick.AddListener(ResumeFromPanel);
+            speed1Button?.onClick.AddListener(SetSpeed1);
+            speed2Button?.onClick.AddListener(SetSpeed2);
+            speed3Button?.onClick.AddListener(SetSpeed3);
+            menuButton?.onClick.AddListener(ToggleMenu);
+            saveButton?.onClick.AddListener(SaveGame);
+            loadButton?.onClick.AddListener(LoadGame);
+            closeMenuButton?.onClick.AddListener(CloseMenu);
+            _listenersRegistered = true;
+        }
+
+        private void OnDestroy()
+        {
+            if (!_listenersRegistered)
+                return;
+
+            pauseButton?.onClick.RemoveListener(ShowPausePanel);
+            resumeButton?.onClick.RemoveListener(ResumeFromPanel);
+            speed1Button?.onClick.RemoveListener(SetSpeed1);
+            speed2Button?.onClick.RemoveListener(SetSpeed2);
+            speed3Button?.onClick.RemoveListener(SetSpeed3);
+            menuButton?.onClick.RemoveListener(ToggleMenu);
+            saveButton?.onClick.RemoveListener(SaveGame);
+            loadButton?.onClick.RemoveListener(LoadGame);
+            closeMenuButton?.onClick.RemoveListener(CloseMenu);
         }
 
         private void Update()
@@ -64,8 +115,16 @@ namespace SpringAutumn.Presentation.UI
             if (world == null)
                 return;
 
+            string date = FormatDate(world.Time);
             if (dateText != null)
-                dateText.text = $"第{world.Time.Year}年{world.Time.Month}月";
+            {
+                dateText.text = date;
+                LegacyTextMirror.SetText(legacyDateText, date);
+            }
+            else
+            {
+                LegacyTextMirror.SetText(legacyDateText, date);
+            }
 
             int grain = 0;
             int money = 0;
@@ -87,8 +146,26 @@ namespace SpringAutumn.Presentation.UI
                     regions++;
             }
 
+            string resources = FormatResources(grain, money, population, soldiers, regions);
             if (resourceText != null)
-                resourceText.text = $"粮 {grain}  钱 {money}  人口 {population}  兵 {soldiers}  Region {regions}";
+            {
+                resourceText.text = resources;
+                LegacyTextMirror.SetText(legacyResourceText, resources);
+            }
+            else
+            {
+                LegacyTextMirror.SetText(legacyResourceText, resources);
+            }
+        }
+
+        public static string FormatDate(GameTimeState time)
+        {
+            return time == null ? "第1年1月" : $"第{time.Year}年{time.Month}月";
+        }
+
+        public static string FormatResources(int grain, int money, int population, int soldiers, int regions)
+        {
+            return $"粮:{grain} 钱:{money} 人:{population} 兵:{soldiers} 郡:{regions}";
         }
 
         private void ShowPausePanel()
@@ -121,6 +198,10 @@ namespace SpringAutumn.Presentation.UI
             }
         }
 
+        private void SetSpeed1() => SetSpeed(1f);
+        private void SetSpeed2() => SetSpeed(2f);
+        private void SetSpeed3() => SetSpeed(3f);
+
         private void ToggleMenu()
         {
             if (menuPanel != null)
@@ -148,7 +229,7 @@ namespace SpringAutumn.Presentation.UI
                 return;
             }
 
-            sceneBinding?.RefreshScene();
+            sceneBinding?.RefreshScene(saveSlot);
             Refresh();
             SetMenuStatus($"已读取槽位 {saveSlot}");
         }
@@ -156,7 +237,14 @@ namespace SpringAutumn.Presentation.UI
         private void SetMenuStatus(string text)
         {
             if (menuStatusText != null)
+            {
                 menuStatusText.text = text;
+                LegacyTextMirror.SetText(legacyMenuStatusText, text);
+            }
+            else
+            {
+                LegacyTextMirror.SetText(legacyMenuStatusText, text);
+            }
         }
 
         private void UpdateSpeedButtons()

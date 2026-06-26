@@ -36,13 +36,24 @@ namespace SpringAutumn.Presentation.Map
 
         public void Bind(GameApplication application, MapLayerController controller)
         {
+            Unsubscribe();
             _application = application;
             _controller = controller;
-            _application.Events.Subscribe<RegionCaptured>(OnRegionCaptured);
+            Subscribe();
             Refresh();
         }
 
         private void OnDestroy()
+        {
+            _application?.Events.Unsubscribe<RegionCaptured>(OnRegionCaptured);
+        }
+
+        private void Subscribe()
+        {
+            _application?.Events.Subscribe<RegionCaptured>(OnRegionCaptured);
+        }
+
+        private void Unsubscribe()
         {
             _application?.Events.Unsubscribe<RegionCaptured>(OnRegionCaptured);
         }

@@ -1,5 +1,6 @@
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using SpringAutumn.Presentation.Input;
 using SpringAutumn.Presentation.Map;
 using SpringAutumn.Presentation.UI;
@@ -17,9 +18,12 @@ namespace SpringAutumn.Presentation.Bootstrap
         [SerializeField] private MapLayerController mapLayerController;
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private TMP_Text statusText;
+        [SerializeField] private Text legacyStatusText;
         [SerializeField] private bool startNewGameOnAwake = true;
 
         private bool _bound;
+        private GameObject _gameOverViewObject;
+        private GameOverView _gameOverView;
 
         private void Awake()
         {
@@ -60,6 +64,60 @@ namespace SpringAutumn.Presentation.Bootstrap
                 return;
             }
 
+            BindSceneObjects();
+            _bound = true;
+
+            var world = launcher.Application.World;
+            SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
+        }
+
+        public void RefreshScene(int loadedSlot = 0)
+        {
+            if (!_bound)
+            {
+                BindScene();
+                if (_bound)
+                    RefreshSceneState(loadedSlot);
+                return;
+            }
+
+            if (launcher == null || launcher.Application?.World == null)
+                return;
+
+            RefreshSceneState(loadedSlot);
+        }
+
+        private void RefreshSceneState(int loadedSlot)
+        {
+            BindSceneObjects();
+            selectionManager?.Clear();
+            mapLayerController?.ShowWorldMap();
+            regionBriefPanel?.Hide();
+            settlementPanel?.Hide();
+            hudView?.Refresh();
+            if (loadedSlot > 0)
+                messageSystem?.ResetForLoadedGame(loadedSlot);
+
+            var world = launcher.Application.World;
+            SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
+        }
+
+        private void EnsureGameOverView()
+        {
+            if (_gameOverViewObject != null)
+            {
+                _gameOverView?.Bind(launcher.Application, launcher, this);
+                return;
+            }
+
+            _gameOverViewObject = new GameObject("GameOverView");
+            _gameOverViewObject.transform.SetParent(transform, false);
+            _gameOverView = _gameOverViewObject.AddComponent<GameOverView>();
+            _gameOverView.Bind(launcher.Application, launcher, this);
+        }
+
+        private void BindSceneObjects()
+        {
             TmpFontResolver.ApplyToScene();
             UiTextFontResolver.ApplyToScene();
             ResolveOptionalSceneObjects();
@@ -70,41 +128,6 @@ namespace SpringAutumn.Presentation.Bootstrap
             regionBriefPanel?.Bind(launcher.Application);
             settlementPanel?.Bind(launcher.Application);
             EnsureGameOverView();
-            _bound = true;
-
-            var world = launcher.Application.World;
-            SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
-        }
-
-        public void RefreshScene()
-        {
-            if (!_bound)
-            {
-                BindScene();
-                return;
-            }
-
-            if (launcher == null || launcher.Application?.World == null)
-                return;
-
-            mapLayerController?.ShowWorldMap();
-            hudView?.Refresh();
-
-            var world = launcher.Application.World;
-            SetStatus($"World ready: {world.Nations.Count} nations / {world.Regions.Count} regions / {world.Settlements.Count} settlements");
-        }
-
-        private GameObject _gameOverViewObject;
-
-        private void EnsureGameOverView()
-        {
-            if (_gameOverViewObject != null)
-                return;
-
-            _gameOverViewObject = new GameObject("GameOverView");
-            _gameOverViewObject.transform.SetParent(transform, false);
-            var view = _gameOverViewObject.AddComponent<GameOverView>();
-            view.Bind(launcher.Application, launcher, this);
         }
 
         private void ResolveOptionalSceneObjects()
@@ -116,7 +139,12 @@ namespace SpringAutumn.Presentation.Bootstrap
         private void SetStatus(string text)
         {
             if (statusText != null)
+            {
                 statusText.text = text;
+                if (legacyStatusText == null)
+                    legacyStatusText = LegacyTextMirror.FromTmp(statusText);
+            }
+            LegacyTextMirror.SetText(legacyStatusText, text);
             Debug.Log("[SceneBootstrap] " + text);
         }
     }
