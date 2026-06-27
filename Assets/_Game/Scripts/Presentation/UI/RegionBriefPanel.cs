@@ -27,7 +27,7 @@ namespace SpringAutumn.Presentation.UI
             Unsubscribe();
             _application = application;
             if (overrideLayout)
-                UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
+                UiPanelLayout.AnchorLeftColumn(GetComponent<RectTransform>(), 230f, 12f, 310f, 20f);
             Subscribe();
             RegisterButtonListeners();
             gameObject.SetActive(false);

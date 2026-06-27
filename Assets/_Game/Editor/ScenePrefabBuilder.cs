@@ -99,13 +99,14 @@ namespace SpringAutumn.EditorTools
             SetRect(dateText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(12f, -12f), new Vector2(220f, 32f));
 
             Text resourceText = CreateLegacyText("ResourceText", hudRoot.transform, "粮 0  钱 0  人口 0  兵 0  Region 0", 20, TextAnchor.MiddleLeft);
-            SetRect(resourceText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(240f, -14f), new Vector2(-540f, 30f));
+            SetRect(resourceText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(240f, -14f), new Vector2(-640f, 30f));
 
-            Button pauseButton = CreateButton("PauseButton", hudRoot.transform, "暂停", new Vector2(1f, 1f), new Vector2(-390f, -14f), new Vector2(72f, 32f));
-            Button speed1Button = CreateButton("Speed1Button", hudRoot.transform, "1x", new Vector2(1f, 1f), new Vector2(-306f, -14f), new Vector2(54f, 32f));
-            Button speed2Button = CreateButton("Speed2Button", hudRoot.transform, "2x", new Vector2(1f, 1f), new Vector2(-242f, -14f), new Vector2(54f, 32f));
-            Button speed3Button = CreateButton("Speed3Button", hudRoot.transform, "3x", new Vector2(1f, 1f), new Vector2(-178f, -14f), new Vector2(54f, 32f));
-            Button menuButton = CreateButton("MenuButton", hudRoot.transform, "菜单", new Vector2(1f, 1f), new Vector2(-96f, -14f), new Vector2(72f, 32f));
+            // 按钮组整体左移，避免最右侧的"菜单"被微信小游戏右上角胶囊按钮（••• 与圆形）遮挡。
+            Button pauseButton = CreateButton("PauseButton", hudRoot.transform, "暂停", new Vector2(1f, 1f), new Vector2(-550f, -14f), new Vector2(72f, 32f));
+            Button speed1Button = CreateButton("Speed1Button", hudRoot.transform, "1x", new Vector2(1f, 1f), new Vector2(-466f, -14f), new Vector2(54f, 32f));
+            Button speed2Button = CreateButton("Speed2Button", hudRoot.transform, "2x", new Vector2(1f, 1f), new Vector2(-402f, -14f), new Vector2(54f, 32f));
+            Button speed3Button = CreateButton("Speed3Button", hudRoot.transform, "3x", new Vector2(1f, 1f), new Vector2(-338f, -14f), new Vector2(54f, 32f));
+            Button menuButton = CreateButton("MenuButton", hudRoot.transform, "菜单", new Vector2(1f, 1f), new Vector2(-256f, -14f), new Vector2(72f, 32f));
             SetButtonColor(speed1Button, new Color(0.55f, 0.42f, 0.16f, 0.95f));
 
             GameObject menuPanel = CreatePanel("MenuPanel", canvas.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-300f, -250f), new Vector2(260f, 220f));
@@ -406,7 +407,9 @@ namespace SpringAutumn.EditorTools
 
         private static SettlementPanel CreateSettlementPanel(Transform canvasTransform)
         {
-            GameObject panel = CreatePanel("SettlementPanel", canvasTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-18f, -24f), new Vector2(310f, 300f));
+            // 据点面板放到左侧、日志区（MessageSystem 固定在左上角 (12,-92) 尺寸 252x124）下方。
+            // 标题/信息/状态/操作按钮均为该面板子节点，整体构成"村庄操作菜单"。
+            GameObject panel = CreatePanel("SettlementPanel", canvasTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(12f, -230f), new Vector2(310f, 320f));
             var settlementPanel = panel.AddComponent<SettlementPanel>();
             var commandDispatcher = panel.AddComponent<UICommandDispatcher>();
 
@@ -414,11 +417,11 @@ namespace SpringAutumn.EditorTools
             SetRect(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -14f), new Vector2(278f, 34f));
 
             Text body = CreateLegacyText("BodyText", panel.transform, "", 16, TextAnchor.UpperLeft);
-            SetRect(body.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -58f), new Vector2(278f, 120f));
+            SetRect(body.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -58f), new Vector2(278f, 150f));
 
             Text status = CreateLegacyText("StatusText", panel.transform, "", 15, TextAnchor.UpperLeft);
             status.color = new Color(0.9f, 0.82f, 0.5f);
-            SetRect(status.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(16f, 60f), new Vector2(278f, 34f));
+            SetRect(status.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -214f), new Vector2(278f, 30f));
 
             Button buildButton = CreateButton("BuildButton", panel.transform, "建设", new Vector2(0f, 0f), new Vector2(16f, 18f), new Vector2(124f, 38f));
             Button recruitButton = CreateButton("RecruitButton", panel.transform, "征兵", new Vector2(0f, 0f), new Vector2(154f, 18f), new Vector2(124f, 38f));

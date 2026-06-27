@@ -30,9 +30,9 @@ namespace SpringAutumn.Presentation.UI
         [SerializeField] private Button cancelAttackButton;
         [SerializeField] private UICommandDispatcher commandDispatcher;
 
-        [Header("面板布局（右上角，覆盖场景值）")]
+        [Header("面板布局（左侧日志区下方，覆盖场景值）")]
         [SerializeField] private bool overrideLayout = true;
-        [SerializeField] private Vector2 panelAnchoredPosition = new Vector2(-12f, -92f);
+        [SerializeField] private Vector2 panelAnchoredPosition = new Vector2(12f, -230f);
         [SerializeField] private float panelScale = 0.9f;
 
         private GameApplication _application;
@@ -60,7 +60,7 @@ namespace SpringAutumn.Presentation.UI
             ResolveReferences();
             _application = application;
             if (overrideLayout)
-                UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
+                UiPanelLayout.AnchorLeftColumn(GetComponent<RectTransform>(), 230f, 12f, 310f, 20f);
             commandDispatcher?.Bind(application);
             EnsureDynamicControls();
             Subscribe();
@@ -360,14 +360,14 @@ namespace SpringAutumn.Presentation.UI
         {
             if (playerOwned)
             {
-                SetButtonRect(buildButton, new Vector2(16f, 18f), new Vector2(124f, 38f));
-                SetButtonRect(recruitButton, new Vector2(154f, 18f), new Vector2(124f, 38f));
-                SetButtonRect(transferButton, new Vector2(16f, 64f), new Vector2(124f, 38f));
+                SetButtonRect(buildButton, new Vector2(294f, 60f), new Vector2(278f, 42f));
+                SetButtonRect(recruitButton, new Vector2(294f, 110f), new Vector2(278f, 42f));
+                SetButtonRect(transferButton, new Vector2(294f, 160f), new Vector2(278f, 42f));
                 return;
             }
 
-            SetButtonRect(attackButton, new Vector2(16f, 18f), new Vector2(124f, 38f));
-            SetButtonRect(diplomacyButton, new Vector2(154f, 18f), new Vector2(124f, 38f));
+            SetButtonRect(attackButton, new Vector2(294f, 60f), new Vector2(278f, 42f));
+            SetButtonRect(diplomacyButton, new Vector2(294f, 110f), new Vector2(278f, 42f));
         }
 
         private static void SetButtonRect(Button button, Vector2 anchoredPosition, Vector2 sizeDelta)
