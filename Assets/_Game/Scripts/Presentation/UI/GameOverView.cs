@@ -191,6 +191,11 @@ namespace SpringAutumn.Presentation.UI
 
         private static Font ResolveFont()
         {
+            // 优先复用统一的预烘焙中文字体（真机唯一可靠来源）。
+            Font resolved = UiTextFontResolver.GetResolvedFont();
+            if (resolved != null)
+                return resolved;
+
             string[] candidates = { "Microsoft YaHei UI", "Microsoft YaHei", "SimHei", "SimSun", "DengXian", "Arial" };
             foreach (var name in candidates)
             {

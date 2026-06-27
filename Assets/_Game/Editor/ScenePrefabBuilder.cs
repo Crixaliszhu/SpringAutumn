@@ -631,11 +631,12 @@ namespace SpringAutumn.EditorTools
             rect.offsetMax = Vector2.zero;
 
             var tmp = obj.AddComponent<TextMeshProUGUI>();
-            TMP_FontAsset cjkFont = GetOrCreateCjkFontAsset();
-            TMP_FontAsset primaryFont = ResolvePrimaryTmpFont(cjkFont);
+            // TMP 仅用默认 ASCII 字体（LiberationSans SDF）。中文不挂在 TMP 上：
+            // 运行时这些 TMP 文本会被镜像成 legacy Text，由预烘焙的中文位图字体渲染，
+            // 从而规避微信小游戏 WASM 环境下 TMP 动态字形生成崩溃，并减小包体。
+            TMP_FontAsset primaryFont = ResolveDefaultTmpFont();
             if (primaryFont != null)
                 tmp.font = primaryFont;
-            AddTmpFallback(tmp.font, cjkFont);
             tmp.text = text;
             tmp.fontSize = fontSize;
             tmp.alignment = alignment;
@@ -648,26 +649,12 @@ namespace SpringAutumn.EditorTools
             return tmp;
         }
 
-        private static TMP_FontAsset ResolvePrimaryTmpFont(TMP_FontAsset cjkFont)
+        private static TMP_FontAsset ResolveDefaultTmpFont()
         {
             TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
-            if (defaultFont != null && defaultFont != cjkFont)
+            if (defaultFont != null)
                 return defaultFont;
-
-            TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-            return resourceFont != null && resourceFont != cjkFont ? resourceFont : null;
-        }
-
-        private static void AddTmpFallback(TMP_FontAsset source, TMP_FontAsset fallback)
-        {
-            if (source == null || fallback == null || source == fallback)
-                return;
-
-            if (source.fallbackFontAssetTable == null)
-                source.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
-
-            if (!source.fallbackFontAssetTable.Contains(fallback))
-                source.fallbackFontAssetTable.Insert(0, fallback);
+            return Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         }
 
         private static Text CreateLegacyText(string name, Transform parent, string text, int fontSize, TextAnchor alignment)
@@ -691,86 +678,6 @@ namespace SpringAutumn.EditorTools
             uiText.horizontalOverflow = HorizontalWrapMode.Overflow;
             uiText.verticalOverflow = VerticalWrapMode.Overflow;
             return uiText;
-        }
-
-        private static TMP_FontAsset GetOrCreateCjkFontAsset()
-        {
-            if (_cjkFontAsset != null)
-                return _cjkFontAsset;
-
-            _cjkFontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CjkFontAssetPath);
-            if (_cjkFontAsset != null)
-                return _cjkFontAsset;
-
-            Font sourceFont = GetOrCreateLocalFontAsset();
-            if (sourceFont == null)
-            {
-                Debug.LogError("[SpringAutumn] Missing CJK font. Put a Chinese .ttf file at " + LocalCjkFontPath + " and rebuild scenes.");
-                return null;
-            }
-
-            _cjkFontAsset = TMP_FontAsset.CreateFontAsset(
-                sourceFont,
-                48,
-                5,
-                GlyphRenderMode.SDFAA_HINTED,
-                2048,
-                2048,
-                AtlasPopulationMode.Dynamic,
-                false);
-            if (_cjkFontAsset == null)
-            {
-                Debug.LogError("[SpringAutumn] Failed to create TMP font asset from " + AssetDatabase.GetAssetPath(sourceFont));
-                return null;
-            }
-
-            _cjkFontAsset.name = "SpringAutumn CJK SDF";
-            ResetFontMaterial(_cjkFontAsset);
-            AssetDatabase.CreateAsset(_cjkFontAsset, CjkFontAssetPath);
-
-            // 预烘焙静态图集：微信小游戏/WebGL 的 IL2CPP+WASM 环境无法在运行时
-            // 通过 FreeType 动态生成字形（会触发 function signature mismatch 崩溃），
-            // 因此在编辑器内将游戏会用到的全部字符一次性烘焙进静态图集。
-            BakeStaticAtlas(_cjkFontAsset);
-
-            AssetDatabase.SaveAssets();
-            Debug.Log("[SpringAutumn] Created TMP CJK font asset: " + CjkFontAssetPath);
-            return _cjkFontAsset;
-        }
-
-        /// <summary>
-        /// 将游戏会显示的字符集烘焙进字体图集（单图集页），并切换为 Static 模式。
-        /// 字符来源：ASCII 可见字符 + 全部配置 JSON 文本 + 所有表现层源码中的中文字面量，
-        /// 保证运行时不再触发动态字形生成。
-        /// </summary>
-        private static void BakeStaticAtlas(TMP_FontAsset fontAsset)
-        {
-            // 在动态模式下把字符渲染进内存中的图集页（CreateFontAsset 已建好 page 0）。
-            // 关闭多图集后，容量不足时只会报缺字，不会创建新页触发 SetupNewAtlasTexture 崩溃。
-            string characters = CollectUsedCharacters();
-            fontAsset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
-            bool added = fontAsset.TryAddCharacters(characters, out string missing, false);
-            if (!added || !string.IsNullOrEmpty(missing))
-                Debug.LogWarning("[SpringAutumn] 字体烘焙未完全覆盖（单图集容量不足或字库缺字）。缺失字符：" + missing);
-
-            // 图集纹理与材质需作为子资产保存，构建时才会被打包。
-            foreach (Texture2D atlasTexture in fontAsset.atlasTextures)
-            {
-                if (atlasTexture != null && !AssetDatabase.IsSubAsset(atlasTexture) &&
-                    !AssetDatabase.Contains(atlasTexture))
-                {
-                    AssetDatabase.AddObjectToAsset(atlasTexture, fontAsset);
-                }
-            }
-            if (fontAsset.material != null && !AssetDatabase.IsSubAsset(fontAsset.material) &&
-                !AssetDatabase.Contains(fontAsset.material))
-            {
-                AssetDatabase.AddObjectToAsset(fontAsset.material, fontAsset);
-            }
-
-            fontAsset.atlasPopulationMode = AtlasPopulationMode.Static;
-            EditorUtility.SetDirty(fontAsset);
-            Debug.Log($"[SpringAutumn] 字体静态烘焙完成：请求字符数={characters.Length}，图集页数={fontAsset.atlasTextures.Length}");
         }
 
         private static string CollectUsedCharacters()
@@ -830,49 +737,58 @@ namespace SpringAutumn.EditorTools
             }
         }
 
-        private static void ResetFontMaterial(TMP_FontAsset fontAsset)
-        {
-            if (fontAsset == null || fontAsset.material == null)
-                return;
-
-            Material material = fontAsset.material;
-            material.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
-            material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
-            material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
-            material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
-            material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0f);
-            material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
-        }
-
         private static Font GetOrCreateLocalFontAsset()
         {
             Font existing = AssetDatabase.LoadAssetAtPath<Font>(LocalCjkFontPath);
             if (existing != null)
                 return existing;
+            return RebakeLegacyCjkFont();
+        }
 
-            string systemFont = FindLocalDevelopmentFontFile();
-            if (string.IsNullOrEmpty(systemFont))
-                return null;
-
-            File.Copy(systemFont, LocalCjkFontPath, true);
-            AssetDatabase.ImportAsset(LocalCjkFontPath, ImportAssetOptions.ForceUpdate);
+        /// <summary>
+        /// 生成/刷新供 legacy UGUI Text 使用的中文字体。
+        /// 关键：使用「非动态 CustomSet」导入——导入时即把用到的字形烘焙进位图图集，
+        /// 运行时为纯纹理采样，无需 FreeType 光栅化，因此在微信小游戏/WebGL 真机可正常显示中文；
+        /// 字符集仅包含实际用到的字符，控制包体。
+        /// </summary>
+        private static Font RebakeLegacyCjkFont()
+        {
+            if (!File.Exists(LocalCjkFontPath))
+            {
+                string systemFont = FindLocalDevelopmentFontFile();
+                if (string.IsNullOrEmpty(systemFont))
+                {
+                    Debug.LogError("[SpringAutumn] 缺少中文字体源文件。请放一个中文 .ttf 到 " + LocalCjkFontPath + " 后重试。");
+                    return null;
+                }
+                File.Copy(systemFont, LocalCjkFontPath, true);
+                AssetDatabase.ImportAsset(LocalCjkFontPath, ImportAssetOptions.ForceUpdate);
+                Debug.Log("[SpringAutumn] 已复制本地中文字体源：" + systemFont);
+            }
 
             var importer = AssetImporter.GetAtPath(LocalCjkFontPath) as TrueTypeFontImporter;
             if (importer != null)
             {
-                importer.includeFontData = true;
+                string characters = CollectUsedCharacters();
+                importer.fontTextureCase = FontTextureCase.CustomSet;
+                importer.customCharacters = characters;
+                importer.fontSize = 44;
+                importer.includeFontData = false;
                 importer.SaveAndReimport();
+                Debug.Log($"[SpringAutumn] 已烘焙 legacy 中文字体（非动态 CustomSet）：字符数={characters.Length}");
             }
 
-            Debug.Log("[SpringAutumn] Copied local development CJK font: " + systemFont);
             return AssetDatabase.LoadAssetAtPath<Font>(LocalCjkFontPath);
         }
 
         private static void RebuildGeneratedFontAsset()
         {
             _cjkFontAsset = null;
-            if (AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CjkFontAssetPath) != null)
+            // 删除历史遗留的 TMP CJK SDF 资产（已不再使用，避免占用包体）。
+            if (AssetDatabase.LoadAssetAtPath<Object>(CjkFontAssetPath) != null)
                 AssetDatabase.DeleteAsset(CjkFontAssetPath);
+            // 按当前字符集重新烘焙 legacy 中文位图字体。
+            RebakeLegacyCjkFont();
         }
 
         private static string FindLocalDevelopmentFontFile()

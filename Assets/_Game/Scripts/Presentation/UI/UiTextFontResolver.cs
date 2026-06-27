@@ -52,6 +52,15 @@ namespace SpringAutumn.Presentation.UI
             if (_font != null)
                 return _font;
 
+            // 优先使用打进包里的「非动态预烘焙中文字体」（微信小游戏/WebGL 真机唯一可靠来源）。
+            Font baked = Resources.Load<Font>("Fonts/SpringAutumnLocalCJK");
+            if (baked != null)
+            {
+                _font = baked;
+                return _font;
+            }
+
+            // 回退：编辑器/桌面端可用的 OS 动态字体（真机沙盒不可用，仅便于编辑器内预览）。
             for (int i = 0; i < FontCandidates.Length; i++)
             {
                 Font candidate = Font.CreateDynamicFontFromOSFont(FontCandidates[i], 18);
@@ -76,7 +85,7 @@ namespace SpringAutumn.Presentation.UI
             if (!_warnedMissingFont)
             {
                 _warnedMissingFont = true;
-                Debug.LogWarning("[UI] No installed CJK UI font can render required Chinese characters.");
+                Debug.LogWarning("[UI] 未找到可渲染中文的字体（缺少预烘焙字体且无可用 OS 中文字体）。");
             }
 
             return null;

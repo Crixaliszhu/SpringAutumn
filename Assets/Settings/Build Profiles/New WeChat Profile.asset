@@ -15,7 +15,7 @@ MonoBehaviour:
   m_BuildTarget: 47
   m_Subtarget: 0
   m_ModuleName: WeixinMiniGame
-  m_BuildPath: D:/wechatSpace/SpringAutumn
+  m_BuildPath: D:/wechatSpace/v1.0.1
   m_PlatformSettings:
     rid: 7113950784412188674
   m_MiniGameSettings:
@@ -966,8 +966,8 @@ MonoBehaviour:
           assetLoadType: 1
           compressDataPackage: 0
           VideoUrl: 
-          relativeDST: D:/wechatSpace/SpringAutumn
-          DST: D:\UnitySpace\SpringAutumn\SpringAutumn\
+          relativeDST: D:/wechatSpace/v1.0.1
+          DST: D:/wechatSpace/v1.0.1
           StreamCDN: 
           bundleHashLength: 32
           bundlePathIdentifier: StreamingAssets;
