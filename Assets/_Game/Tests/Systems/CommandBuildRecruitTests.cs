@@ -15,7 +15,7 @@ namespace SpringAutumn.Tests.Systems
     {
         private static ConfigDatabase LoadConfig()
             => new ConfigLoader().Load(JsonConfigSource.FromDirectory(
-                Path.Combine(Application.dataPath, "_Game", "Config")));
+                Path.Combine(Application.dataPath, "_Game", "Resources", "Config")));
 
         private static SettlementState MakeVillage(int households = 100, int pop = 500,
             int grain = 100000, int money = 5000, int garrison = 20, int loyalty = 80)

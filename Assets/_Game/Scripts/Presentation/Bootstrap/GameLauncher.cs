@@ -10,7 +10,7 @@ namespace SpringAutumn.Presentation.Bootstrap
     /// <summary>Unity 场景入口。负责加载配置、创建 GameApplication，并在 Update 中驱动月度 Tick。</summary>
     public class GameLauncher : MonoBehaviour
     {
-        [SerializeField] private string configRelativePath = "_Game/Config";
+        [SerializeField] private string configResourceDir = "Config";
         [SerializeField] private float secondsPerMonth = GameApplication.DefaultSecondsPerMonth;
         [SerializeField] private bool autoNewGameOnStart;
 
@@ -38,8 +38,7 @@ namespace SpringAutumn.Presentation.Bootstrap
         {
             try
             {
-                string configDir = Path.Combine(UnityEngine.Application.dataPath, configRelativePath);
-                Config = new ConfigLoader().Load(JsonConfigSource.FromDirectory(configDir));
+                Config = new ConfigLoader().Load(JsonConfigSource.FromResources(configResourceDir));
 
                 string saveDir = Path.Combine(UnityEngine.Application.persistentDataPath, "saves");
                 var saveManager = new SaveManager(Config, new FileSaveStorage(saveDir));

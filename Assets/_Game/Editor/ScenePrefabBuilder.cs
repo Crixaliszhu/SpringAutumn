@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -73,7 +75,7 @@ namespace SpringAutumn.EditorTools
 
             var launcherObject = new GameObject("GameLauncher");
             var launcher = launcherObject.AddComponent<GameLauncher>();
-            SetSerializedValue(launcher, "configRelativePath", "_Game/Config");
+            SetSerializedValue(launcher, "configResourceDir", "Config");
             SetSerializedValue(launcher, "secondsPerMonth", GameApplication.DefaultSecondsPerMonth);
             SetSerializedValue(launcher, "autoNewGameOnStart", false);
 
@@ -682,13 +684,13 @@ namespace SpringAutumn.EditorTools
 
             _cjkFontAsset = TMP_FontAsset.CreateFontAsset(
                 sourceFont,
-                72,
-                8,
+                48,
+                5,
                 GlyphRenderMode.SDFAA_HINTED,
                 2048,
                 2048,
                 AtlasPopulationMode.Dynamic,
-                true);
+                false);
             if (_cjkFontAsset == null)
             {
                 Debug.LogError("[SpringAutumn] Failed to create TMP font asset from " + AssetDatabase.GetAssetPath(sourceFont));
@@ -696,12 +698,109 @@ namespace SpringAutumn.EditorTools
             }
 
             _cjkFontAsset.name = "SpringAutumn CJK SDF";
-            _cjkFontAsset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
             ResetFontMaterial(_cjkFontAsset);
             AssetDatabase.CreateAsset(_cjkFontAsset, CjkFontAssetPath);
+
+            // 预烘焙静态图集：微信小游戏/WebGL 的 IL2CPP+WASM 环境无法在运行时
+            // 通过 FreeType 动态生成字形（会触发 function signature mismatch 崩溃），
+            // 因此在编辑器内将游戏会用到的全部字符一次性烘焙进静态图集。
+            BakeStaticAtlas(_cjkFontAsset);
+
             AssetDatabase.SaveAssets();
             Debug.Log("[SpringAutumn] Created TMP CJK font asset: " + CjkFontAssetPath);
             return _cjkFontAsset;
+        }
+
+        /// <summary>
+        /// 将游戏会显示的字符集烘焙进字体图集（单图集页），并切换为 Static 模式。
+        /// 字符来源：ASCII 可见字符 + 全部配置 JSON 文本 + 所有表现层源码中的中文字面量，
+        /// 保证运行时不再触发动态字形生成。
+        /// </summary>
+        private static void BakeStaticAtlas(TMP_FontAsset fontAsset)
+        {
+            // 在动态模式下把字符渲染进内存中的图集页（CreateFontAsset 已建好 page 0）。
+            // 关闭多图集后，容量不足时只会报缺字，不会创建新页触发 SetupNewAtlasTexture 崩溃。
+            string characters = CollectUsedCharacters();
+            fontAsset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+            bool added = fontAsset.TryAddCharacters(characters, out string missing, false);
+            if (!added || !string.IsNullOrEmpty(missing))
+                Debug.LogWarning("[SpringAutumn] 字体烘焙未完全覆盖（单图集容量不足或字库缺字）。缺失字符：" + missing);
+
+            // 图集纹理与材质需作为子资产保存，构建时才会被打包。
+            foreach (Texture2D atlasTexture in fontAsset.atlasTextures)
+            {
+                if (atlasTexture != null && !AssetDatabase.IsSubAsset(atlasTexture) &&
+                    !AssetDatabase.Contains(atlasTexture))
+                {
+                    AssetDatabase.AddObjectToAsset(atlasTexture, fontAsset);
+                }
+            }
+            if (fontAsset.material != null && !AssetDatabase.IsSubAsset(fontAsset.material) &&
+                !AssetDatabase.Contains(fontAsset.material))
+            {
+                AssetDatabase.AddObjectToAsset(fontAsset.material, fontAsset);
+            }
+
+            fontAsset.atlasPopulationMode = AtlasPopulationMode.Static;
+            EditorUtility.SetDirty(fontAsset);
+            Debug.Log($"[SpringAutumn] 字体静态烘焙完成：请求字符数={characters.Length}，图集页数={fontAsset.atlasTextures.Length}");
+        }
+
+        private static string CollectUsedCharacters()
+        {
+            var set = new HashSet<char>();
+
+            // ASCII 可见字符（数字、字母、标点）。
+            for (char c = ' '; c <= '~'; c++)
+                set.Add(c);
+
+            // 全部配置 JSON（势力/区域/据点/建筑等名称与描述）。
+            string configDir = Path.Combine(Application.dataPath, "_Game", "Resources", "Config");
+            if (Directory.Exists(configDir))
+            {
+                foreach (string file in Directory.GetFiles(configDir, "*.json"))
+                    AddChars(set, File.ReadAllText(file));
+            }
+
+            // 所有源码中的中文字面量（含运行时 UI 以及 Editor 场景生成脚本里的按钮/面板文案）。
+            string scriptsDir = Path.Combine(Application.dataPath, "_Game");
+            if (Directory.Exists(scriptsDir))
+            {
+                foreach (string file in Directory.GetFiles(scriptsDir, "*.cs", SearchOption.AllDirectories))
+                    AddCjkChars(set, File.ReadAllText(file));
+            }
+
+            var sb = new StringBuilder(set.Count);
+            foreach (char c in set)
+                sb.Append(c);
+            return sb.ToString();
+        }
+
+        private static void AddChars(HashSet<char> set, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+            foreach (char c in text)
+            {
+                if (!char.IsControl(c))
+                    set.Add(c);
+            }
+        }
+
+        private static void AddCjkChars(HashSet<char> set, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+            foreach (char c in text)
+            {
+                // CJK 统一表意文字 + 常用标点，覆盖源码内的中文 UI 文案。
+                if ((c >= 0x4E00 && c <= 0x9FFF) ||
+                    (c >= 0x3000 && c <= 0x303F) ||
+                    (c >= 0xFF00 && c <= 0xFFEF))
+                {
+                    set.Add(c);
+                }
+            }
         }
 
         private static void ResetFontMaterial(TMP_FontAsset fontAsset)

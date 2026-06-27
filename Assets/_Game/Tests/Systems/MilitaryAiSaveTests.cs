@@ -18,7 +18,7 @@ namespace SpringAutumn.Tests.Systems
     {
         private static ConfigDatabase LoadConfig()
             => new ConfigLoader().Load(JsonConfigSource.FromDirectory(
-                Path.Combine(Application.dataPath, "_Game", "Config")));
+                Path.Combine(Application.dataPath, "_Game", "Resources", "Config")));
 
         private static WorldRuntime NewWorld()
             => new WorldFactory().CreateNewWorld(LoadConfig());

@@ -11,7 +11,7 @@ namespace SpringAutumn.Tests.Runtime
     /// <summary>WorldFactory 与运行时状态测试（需求 3.3、3.4、3.5、3.6）。</summary>
     public class WorldFactoryTests
     {
-        private static string ConfigDir => Path.Combine(Application.dataPath, "_Game", "Config");
+        private static string ConfigDir => Path.Combine(Application.dataPath, "_Game", "Resources", "Config");
 
         private static ConfigDatabase LoadConfig()
             => new ConfigLoader().Load(JsonConfigSource.FromDirectory(ConfigDir));

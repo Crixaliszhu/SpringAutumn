@@ -131,7 +131,7 @@ namespace SpringAutumn.EditorTools
 
             try
             {
-                string configDir = Path.Combine(Application.dataPath, "_Game/Config");
+                string configDir = Path.Combine(Application.dataPath, "_Game/Resources/Config");
                 ConfigDatabase config = new ConfigLoader().Load(JsonConfigSource.FromDirectory(configDir));
                 var saveManager = new SaveManager(config, new FileSaveStorage(saveDir));
                 var app = new GameApplication(config, saveManager);

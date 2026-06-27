@@ -12,7 +12,7 @@ namespace SpringAutumn.Tests.Config
     public class ConfigLoaderTests
     {
         private static string ConfigDir =>
-            Path.Combine(Application.dataPath, "_Game", "Config");
+            Path.Combine(Application.dataPath, "_Game", "Resources", "Config");
 
         private static IConfigSource RealSource() => JsonConfigSource.FromDirectory(ConfigDir);
 

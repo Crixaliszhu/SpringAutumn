@@ -51,6 +51,28 @@ namespace SpringAutumn.Presentation.Config
                 Read("Battle.json"), Read("AI.json"));
         }
 
+        /// <summary>
+        /// 从 Resources 目录加载 8 个 JSON 文本资源构建数据源。
+        /// 跨平台同步可用（含微信小游戏/WebGL 沙盒），文件需置于
+        /// <c>Assets/_Game/Resources/&lt;resourceDir&gt;</c> 下，且不带扩展名引用。
+        /// </summary>
+        public static JsonConfigSource FromResources(string resourceDir)
+        {
+            string Read(string file)
+            {
+                string path = string.IsNullOrEmpty(resourceDir) ? file : resourceDir + "/" + file;
+                var asset = Resources.Load<TextAsset>(path);
+                if (asset == null)
+                    throw new FileNotFoundException("缺少配置资源（Resources）：" + path);
+                return asset.text;
+            }
+
+            return new JsonConfigSource(
+                Read("Nations"), Read("Regions"), Read("SettlementTemplates"),
+                Read("Settlements"), Read("Buildings"), Read("Economy"),
+                Read("Battle"), Read("AI"));
+        }
+
         public IReadOnlyList<NationConfig> LoadNations() => _nations;
         public IReadOnlyList<RegionConfig> LoadRegions() => _regions;
         public IReadOnlyList<SettlementTemplateConfig> LoadTemplates() => _templates;

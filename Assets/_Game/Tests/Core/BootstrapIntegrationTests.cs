@@ -14,7 +14,7 @@ namespace SpringAutumn.Tests.Core
     {
         private static ConfigDatabase LoadConfig()
             => new ConfigLoader().Load(JsonConfigSource.FromDirectory(
-                Path.Combine(Application.dataPath, "_Game", "Config")));
+                Path.Combine(Application.dataPath, "_Game", "Resources", "Config")));
 
         [Test]
         public void M9_NewGame_Run12_Save_Load_Run12_IsContinuous()
