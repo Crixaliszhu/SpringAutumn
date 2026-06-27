@@ -27,6 +27,7 @@ namespace SpringAutumn.Presentation.UI
 
         public void Bind(GameApplication application, GameLauncher launcher, SceneBindingBootstrap sceneBinding)
         {
+            _application?.Events.Unsubscribe<GameEnded>(OnGameEnded);
             _application = application;
             _launcher = launcher;
             _sceneBinding = sceneBinding;

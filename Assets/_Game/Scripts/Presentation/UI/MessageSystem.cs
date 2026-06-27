@@ -11,6 +11,7 @@ namespace SpringAutumn.Presentation.UI
     public class MessageSystem : MonoBehaviour
     {
         [SerializeField] private TMP_Text messageText;
+        [SerializeField] private Text legacyMessageText;
         [SerializeField] private int maxMessages = 50;
 
         [Header("日志面板布局（左上角，覆盖场景值）")]
@@ -26,8 +27,35 @@ namespace SpringAutumn.Presentation.UI
 
         public void Bind(GameApplication application)
         {
+            Unsubscribe();
             _application = application;
             BuildLayout();
+            Subscribe();
+        }
+
+        private void OnDestroy()
+        {
+            Unsubscribe();
+        }
+
+        public void ResetForLoadedGame(int slot)
+        {
+            _messages.Clear();
+            if (messageText != null)
+                messageText.text = string.Empty;
+            if (legacyMessageText != null)
+                legacyMessageText.text = string.Empty;
+
+            var world = _application?.World;
+            if (world != null)
+                Add($"读档{slot}：第{world.Time.Year}年{world.Time.Month}月");
+        }
+
+        private void Subscribe()
+        {
+            if (_application == null)
+                return;
+
             _application.Events.Subscribe<MonthChanged>(OnMonthChanged);
             _application.Events.Subscribe<WarDeclared>(OnWarDeclared);
             _application.Events.Subscribe<RegionCaptured>(OnRegionCaptured);
@@ -38,10 +66,11 @@ namespace SpringAutumn.Presentation.UI
             _application.Events.Subscribe<GameEnded>(OnGameEnded);
         }
 
-        private void OnDestroy()
+        private void Unsubscribe()
         {
             if (_application == null)
                 return;
+
             _application.Events.Unsubscribe<MonthChanged>(OnMonthChanged);
             _application.Events.Unsubscribe<WarDeclared>(OnWarDeclared);
             _application.Events.Unsubscribe<RegionCaptured>(OnRegionCaptured);
@@ -55,12 +84,17 @@ namespace SpringAutumn.Presentation.UI
         /// <summary>把日志面板收缩到左上角，并把文本包进 ScrollRect 支持滚动。</summary>
         private void BuildLayout()
         {
-            if (_layoutBuilt || messageText == null)
+            if (_layoutBuilt || (messageText == null && legacyMessageText == null))
                 return;
 
+            if (legacyMessageText == null)
+                legacyMessageText = LegacyTextMirror.FromTmp(messageText);
+
             var panel = GetComponent<RectTransform>();
-            if (panel == null && messageText.transform.parent != null)
+            if (panel == null && messageText != null && messageText.transform.parent != null)
                 panel = messageText.transform.parent as RectTransform;
+            if (panel == null && legacyMessageText != null && legacyMessageText.transform.parent != null)
+                panel = legacyMessageText.transform.parent as RectTransform;
             if (panel == null)
                 return;
 
@@ -85,7 +119,7 @@ namespace SpringAutumn.Presentation.UI
             viewportObject.AddComponent<RectMask2D>();
 
             // 把文本作为可滚动内容挂到视口下，顶部对齐、按内容撑高。
-            var content = messageText.rectTransform;
+            var content = legacyMessageText != null ? legacyMessageText.rectTransform : messageText.rectTransform;
             content.SetParent(viewport, false);
             content.anchorMin = new Vector2(0f, 1f);
             content.anchorMax = new Vector2(1f, 1f);
@@ -93,12 +127,21 @@ namespace SpringAutumn.Presentation.UI
             content.offsetMin = new Vector2(0f, 0f);
             content.offsetMax = new Vector2(0f, 0f);
             content.anchoredPosition = Vector2.zero;
-            messageText.alignment = TextAlignmentOptions.TopLeft;
-            messageText.enableWordWrapping = true;
+            if (messageText != null)
+            {
+                messageText.alignment = TextAlignmentOptions.TopLeft;
+                messageText.enableWordWrapping = true;
+            }
+            if (legacyMessageText != null)
+            {
+                legacyMessageText.alignment = TextAnchor.UpperLeft;
+                legacyMessageText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                legacyMessageText.verticalOverflow = VerticalWrapMode.Overflow;
+            }
 
-            var fitter = messageText.gameObject.GetComponent<ContentSizeFitter>();
+            var fitter = content.gameObject.GetComponent<ContentSizeFitter>();
             if (fitter == null)
-                fitter = messageText.gameObject.AddComponent<ContentSizeFitter>();
+                fitter = content.gameObject.AddComponent<ContentSizeFitter>();
             fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -121,9 +164,12 @@ namespace SpringAutumn.Presentation.UI
             while (_messages.Count > maxMessages)
                 _messages.Dequeue();
 
+            string joined = string.Join("\n", _messages.ToArray());
             if (messageText != null)
+                messageText.text = joined;
+            LegacyTextMirror.SetText(legacyMessageText, joined);
+            if (messageText != null || legacyMessageText != null)
             {
-                messageText.text = string.Join("\n", _messages.ToArray());
                 ScrollToBottom();
             }
         }

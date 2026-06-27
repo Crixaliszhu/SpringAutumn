@@ -24,19 +24,42 @@ namespace SpringAutumn.Presentation.UI
 
         public void Bind(GameApplication application)
         {
+            Unsubscribe();
             _application = application;
             if (overrideLayout)
                 UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
-            _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
-            _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
-            enterRegionButton?.onClick.AddListener(EnterRegion);
+            Subscribe();
+            RegisterButtonListeners();
             gameObject.SetActive(false);
         }
 
         private void OnDestroy()
         {
+            Unsubscribe();
+            enterRegionButton?.onClick.RemoveListener(EnterRegion);
+        }
+
+        private void Subscribe()
+        {
+            _application?.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
+            _application?.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
+        }
+
+        private void Unsubscribe()
+        {
             _application?.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
             _application?.Events.Unsubscribe<MapLayerChanged>(OnMapLayerChanged);
+        }
+
+        private bool _buttonListenerRegistered;
+
+        private void RegisterButtonListeners()
+        {
+            if (_buttonListenerRegistered)
+                return;
+
+            enterRegionButton?.onClick.AddListener(EnterRegion);
+            _buttonListenerRegistered = true;
         }
 
         private void OnSelectionChanged(SelectionChanged evt)

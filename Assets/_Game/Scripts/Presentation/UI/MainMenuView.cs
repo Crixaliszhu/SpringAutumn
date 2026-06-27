@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using SpringAutumn.Presentation.Bootstrap;
 
 namespace SpringAutumn.Presentation.UI
@@ -21,12 +22,20 @@ namespace SpringAutumn.Presentation.UI
         private void Awake()
         {
             ResolveReferences();
+            MirrorTmpTexts();
             startButton?.onClick.AddListener(OnStart);
             loadButton?.onClick.AddListener(OnLoad);
             settingsButton?.onClick.AddListener(ToggleSettings);
             exitButton?.onClick.AddListener(OnExit);
             if (settingsPanel != null)
                 settingsPanel.SetActive(false);
+        }
+
+        private void MirrorTmpTexts()
+        {
+            TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
+            for (int i = 0; i < texts.Length; i++)
+                LegacyTextMirror.FromTmp(texts[i]);
         }
 
         private void OnDestroy()
@@ -73,7 +82,7 @@ namespace SpringAutumn.Presentation.UI
             }
 
             sceneBinding?.BindScene();
-            sceneBinding?.RefreshScene();
+            sceneBinding?.RefreshScene(saveSlot);
             gameObject.SetActive(false);
         }
 

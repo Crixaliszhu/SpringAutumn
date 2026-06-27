@@ -6,23 +6,10 @@ namespace SpringAutumn.Presentation.UI
     /// <summary>Provides a runtime TMP font that can render Chinese UI text in editor and player.</summary>
     public static class TmpFontResolver
     {
-        private const string CjkFontResourcePath = "Fonts/SpringAutumn CJK SDF";
-        private static TMP_FontAsset _fontAsset;
-        private static bool _warnedMissingFont;
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RegisterGlobalFallback()
         {
-            TMP_FontAsset fontAsset = GetOrCreateFontAsset();
-            if (fontAsset == null)
-                return;
-
-            var fallbackFontAssets = TMP_Settings.fallbackFontAssets;
-            if (fallbackFontAssets == null)
-                return;
-
-            if (!fallbackFontAssets.Contains(fontAsset))
-                fallbackFontAssets.Insert(0, fontAsset);
+            RemoveBrokenFallbacks(TMP_Settings.fallbackFontAssets);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -35,7 +22,10 @@ namespace SpringAutumn.Presentation.UI
         {
             RegisterGlobalFallback();
             foreach (TMP_Text text in UnityEngine.Object.FindObjectsOfType<TMP_Text>(true))
+            {
                 Apply(text);
+                LegacyTextMirror.FromTmp(text);
+            }
         }
 
         public static void Apply(TMP_Text text)
@@ -43,45 +33,45 @@ namespace SpringAutumn.Presentation.UI
             if (text == null)
                 return;
 
-            TMP_FontAsset fontAsset = GetOrCreateFontAsset();
-            if (fontAsset != null)
-            {
-                AddFallback(text.font, fontAsset);
-                text.font = fontAsset;
-            }
+            RemoveBrokenFallbacks(text.font?.fallbackFontAssetTable);
+            if (text.font == null || IsUnusableDynamicFont(text.font))
+                text.font = ResolvePrimaryFont();
+            if (text.font != null && text.font.material != null)
+                text.fontSharedMaterial = text.font.material;
 
             text.extraPadding = true;
             text.richText = true;
         }
 
-        private static void AddFallback(TMP_FontAsset source, TMP_FontAsset fallback)
+        private static TMP_FontAsset ResolvePrimaryFont()
         {
-            if (source == null || fallback == null || source == fallback)
-                return;
+            TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
+            if (defaultFont != null && !IsUnusableDynamicFont(defaultFont))
+                return defaultFont;
 
-            if (source.fallbackFontAssetTable == null)
-                source.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
-
-            if (!source.fallbackFontAssetTable.Contains(fallback))
-                source.fallbackFontAssetTable.Insert(0, fallback);
+            TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            return resourceFont;
         }
 
-        private static TMP_FontAsset GetOrCreateFontAsset()
+        private static bool IsUnusableDynamicFont(TMP_FontAsset fontAsset)
         {
-            if (_fontAsset != null)
-                return _fontAsset;
+            return fontAsset != null
+                && fontAsset.atlasPopulationMode == AtlasPopulationMode.Dynamic
+                && fontAsset.sourceFontFile == null
+                && (fontAsset.characterTable == null || fontAsset.characterTable.Count == 0);
+        }
 
-            _fontAsset = Resources.Load<TMP_FontAsset>(CjkFontResourcePath);
-            if (_fontAsset != null)
-                return _fontAsset;
+        private static void RemoveBrokenFallbacks(System.Collections.Generic.List<TMP_FontAsset> fallbackFontAssets)
+        {
+            if (fallbackFontAssets == null)
+                return;
 
-            if (_fontAsset == null && !_warnedMissingFont)
+            for (int i = fallbackFontAssets.Count - 1; i >= 0; i--)
             {
-                _warnedMissingFont = true;
-                Debug.LogWarning("[UI] Missing TMP CJK font resource. Run SpringAutumn/Build Scenes/Stage 1-10 Bootstrap HUD FinalCheck to generate it.");
+                TMP_FontAsset fallback = fallbackFontAssets[i];
+                if (fallback == null || IsUnusableDynamicFont(fallback))
+                    fallbackFontAssets.RemoveAt(i);
             }
-
-            return _fontAsset;
         }
     }
 }

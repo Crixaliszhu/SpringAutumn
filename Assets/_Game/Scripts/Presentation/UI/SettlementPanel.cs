@@ -42,6 +42,7 @@ namespace SpringAutumn.Presentation.UI
         private string _transferSourceSettlementId;
         private string _transferTargetSettlementId;
         private GameObject _choicePanel;
+        private bool _buttonListenersRegistered;
         private readonly List<Button> _choiceButtons = new List<Button>();
 
         private enum PanelMode
@@ -55,22 +56,15 @@ namespace SpringAutumn.Presentation.UI
 
         public void Bind(GameApplication application)
         {
+            Unsubscribe();
             ResolveReferences();
             _application = application;
             if (overrideLayout)
                 UiPanelLayout.AnchorTopRight(GetComponent<RectTransform>(), panelAnchoredPosition, panelScale);
             commandDispatcher?.Bind(application);
             EnsureDynamicControls();
-            _application.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
-            _application.Events.Subscribe<MonthChanged>(OnMonthChanged);
-            _application.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
-            buildButton?.onClick.AddListener(BuildDefault);
-            recruitButton?.onClick.AddListener(RecruitDefault);
-            attackButton?.onClick.AddListener(AttackSelected);
-            transferButton?.onClick.AddListener(TransferSelected);
-            diplomacyButton?.onClick.AddListener(OpenDiplomacy);
-            confirmAttackButton?.onClick.AddListener(ConfirmCurrentAction);
-            cancelAttackButton?.onClick.AddListener(CancelAttack);
+            Subscribe();
+            RegisterButtonListeners();
             HideOperationPanels();
             gameObject.SetActive(false);
         }
@@ -236,9 +230,44 @@ namespace SpringAutumn.Presentation.UI
 
         private void OnDestroy()
         {
+            Unsubscribe();
+            RemoveButtonListeners();
+        }
+
+        private void Subscribe()
+        {
+            _application?.Events.Subscribe<SelectionChanged>(OnSelectionChanged);
+            _application?.Events.Subscribe<MonthChanged>(OnMonthChanged);
+            _application?.Events.Subscribe<MapLayerChanged>(OnMapLayerChanged);
+        }
+
+        private void Unsubscribe()
+        {
             _application?.Events.Unsubscribe<SelectionChanged>(OnSelectionChanged);
             _application?.Events.Unsubscribe<MonthChanged>(OnMonthChanged);
             _application?.Events.Unsubscribe<MapLayerChanged>(OnMapLayerChanged);
+        }
+
+        private void RegisterButtonListeners()
+        {
+            if (_buttonListenersRegistered)
+                return;
+
+            buildButton?.onClick.AddListener(BuildDefault);
+            recruitButton?.onClick.AddListener(RecruitDefault);
+            attackButton?.onClick.AddListener(AttackSelected);
+            transferButton?.onClick.AddListener(TransferSelected);
+            diplomacyButton?.onClick.AddListener(OpenDiplomacy);
+            confirmAttackButton?.onClick.AddListener(ConfirmCurrentAction);
+            cancelAttackButton?.onClick.AddListener(CancelAttack);
+            _buttonListenersRegistered = true;
+        }
+
+        private void RemoveButtonListeners()
+        {
+            if (!_buttonListenersRegistered)
+                return;
+
             buildButton?.onClick.RemoveListener(BuildDefault);
             recruitButton?.onClick.RemoveListener(RecruitDefault);
             attackButton?.onClick.RemoveListener(AttackSelected);
@@ -246,6 +275,7 @@ namespace SpringAutumn.Presentation.UI
             diplomacyButton?.onClick.RemoveListener(OpenDiplomacy);
             confirmAttackButton?.onClick.RemoveListener(ConfirmCurrentAction);
             cancelAttackButton?.onClick.RemoveListener(CancelAttack);
+            _buttonListenersRegistered = false;
         }
 
         private void OnSelectionChanged(SelectionChanged evt)
@@ -281,10 +311,7 @@ namespace SpringAutumn.Presentation.UI
             if (titleText != null)
                 titleText.text = settlement.Id;
             if (bodyText != null)
-            {
-                string ownerLine = settlement.OwnerId == PlayerNationId ? "可操作" : "仅可查看";
-                bodyText.text = $"所属：{settlement.OwnerId}（{ownerLine}）\n人口：{settlement.Population}\n粮食：{settlement.Grain}\n铜钱：{settlement.Money}\n守军：{settlement.Garrison}\n建设队列：{settlement.ConstructionQueue.Count}\n征兵队列：{settlement.RecruitQueue.Count}";
-            }
+                bodyText.text = SettlementPanelTextFormatter.FormatBody(settlement, _application.Config, PlayerNationId);
             RefreshActions(settlement, keepAttackConfirm);
             gameObject.SetActive(true);
         }
@@ -372,7 +399,8 @@ namespace SpringAutumn.Presentation.UI
 
             string building = settlement.IsCity ? "MARKET" : "FARM";
             bool accepted = commandDispatcher != null && commandDispatcher.Enqueue(new BuildCommand(settlement.OwnerId, settlement.Id, building, _application.Config));
-            SetStatus(accepted ? $"已提交建设：{building}，下月执行" : "建设未通过：资源或规则不足");
+            string buildingName = SettlementPanelTextFormatter.GetBuildingName(_application.Config, building);
+            SetStatus(accepted ? $"已提交建设：{buildingName}，下月执行" : "建设未通过：资源或规则不足");
         }
 
         private void RecruitDefault()

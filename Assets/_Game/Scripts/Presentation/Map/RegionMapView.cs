@@ -26,18 +26,28 @@ namespace SpringAutumn.Presentation.Map
         private GameApplication _application;
         private MapLayerController _controller;
         private string _regionId;
+        private bool _buttonListenerRegistered;
 
         public void Bind(GameApplication application, MapLayerController controller)
         {
             _application = application;
             _controller = controller;
-            returnButton?.onClick.AddListener(ReturnToWorldMap);
+            RegisterButtonListeners();
             Hide();
         }
 
         private void OnDestroy()
         {
             returnButton?.onClick.RemoveListener(ReturnToWorldMap);
+        }
+
+        private void RegisterButtonListeners()
+        {
+            if (_buttonListenerRegistered)
+                return;
+
+            returnButton?.onClick.AddListener(ReturnToWorldMap);
+            _buttonListenerRegistered = true;
         }
 
         public void ShowRegion(string regionId)

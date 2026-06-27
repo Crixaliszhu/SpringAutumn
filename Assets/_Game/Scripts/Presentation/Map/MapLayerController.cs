@@ -31,10 +31,9 @@ namespace SpringAutumn.Presentation.Map
 
         public void Bind(GameApplication application)
         {
+            Unsubscribe();
             Application = application;
-            Application.Events.Subscribe<MonthChanged>(OnWorldChanged);
-            Application.Events.Subscribe<BattleFinished>(OnWorldChanged);
-            Application.Events.Subscribe<RegionCaptured>(OnWorldChanged);
+            Subscribe();
             worldMapView?.Bind(application, this);
             regionMapView?.Bind(application, this);
             ShowWorldMap();
@@ -48,6 +47,20 @@ namespace SpringAutumn.Presentation.Map
             Application.Events.Unsubscribe<MonthChanged>(OnWorldChanged);
             Application.Events.Unsubscribe<BattleFinished>(OnWorldChanged);
             Application.Events.Unsubscribe<RegionCaptured>(OnWorldChanged);
+        }
+
+        private void Subscribe()
+        {
+            Application?.Events.Subscribe<MonthChanged>(OnWorldChanged);
+            Application?.Events.Subscribe<BattleFinished>(OnWorldChanged);
+            Application?.Events.Subscribe<RegionCaptured>(OnWorldChanged);
+        }
+
+        private void Unsubscribe()
+        {
+            Application?.Events.Unsubscribe<MonthChanged>(OnWorldChanged);
+            Application?.Events.Unsubscribe<BattleFinished>(OnWorldChanged);
+            Application?.Events.Unsubscribe<RegionCaptured>(OnWorldChanged);
         }
 
         public void ShowWorldMap()
