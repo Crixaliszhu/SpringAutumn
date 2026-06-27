@@ -210,23 +210,29 @@ namespace SpringAutumn.EditorTools
                 background.color = new Color(0.02f, 0.03f, 0.02f, 0.96f);
             var menu = root.AddComponent<MainMenuView>();
 
-            Text title = CreateLegacyText("Title", root.transform, "春秋问鼎", 42, TextAnchor.MiddleCenter);
-            SetCenteredRect(title.rectTransform, new Vector2(0f, 150f), new Vector2(360f, 60f));
+            Text title = CreateLegacyText("Title", root.transform, "春秋问鼎", 46, TextAnchor.MiddleCenter);
+            SetCenteredRect(title.rectTransform, new Vector2(0f, 170f), new Vector2(420f, 70f));
 
-            Text subtitle = CreateLegacyText("Subtitle", root.transform, "从流民村开始，问鼎天下", 18, TextAnchor.MiddleCenter);
-            SetCenteredRect(subtitle.rectTransform, new Vector2(0f, 102f), new Vector2(420f, 36f));
+            Text subtitle = CreateLegacyText("Subtitle", root.transform, "从流民村开始，问鼎天下", 26, TextAnchor.MiddleCenter);
+            SetCenteredRect(subtitle.rectTransform, new Vector2(0f, 112f), new Vector2(540f, 46f));
 
-            Button startButton = CreateButton("StartButton", root.transform, "开始游戏", new Vector2(0.5f, 0.5f), new Vector2(90f, 46f), new Vector2(180f, 42f));
-            SetCenteredRect(startButton.GetComponent<RectTransform>(), new Vector2(0f, 42f), new Vector2(180f, 42f));
-            Button loadButton = CreateButton("LoadButton", root.transform, "读取槽位 1", new Vector2(0.5f, 0.5f), new Vector2(90f, -6f), new Vector2(180f, 42f));
-            SetCenteredRect(loadButton.GetComponent<RectTransform>(), new Vector2(0f, -8f), new Vector2(180f, 42f));
-            Button settingsButton = CreateButton("SettingsButton", root.transform, "设置", new Vector2(0.5f, 0.5f), new Vector2(90f, -58f), new Vector2(180f, 42f));
-            SetCenteredRect(settingsButton.GetComponent<RectTransform>(), new Vector2(0f, -58f), new Vector2(180f, 42f));
-            Button exitButton = CreateButton("ExitButton", root.transform, "退出", new Vector2(0.5f, 0.5f), new Vector2(90f, -110f), new Vector2(180f, 42f));
-            SetCenteredRect(exitButton.GetComponent<RectTransform>(), new Vector2(0f, -108f), new Vector2(180f, 42f));
+            Button startButton = CreateButton("StartButton", root.transform, "开始游戏", new Vector2(0.5f, 0.5f), new Vector2(90f, 46f), new Vector2(260f, 56f));
+            SetCenteredRect(startButton.GetComponent<RectTransform>(), new Vector2(0f, 36f), new Vector2(260f, 56f));
+            Button loadButton = CreateButton("LoadButton", root.transform, "读取槽位 1", new Vector2(0.5f, 0.5f), new Vector2(90f, -6f), new Vector2(260f, 56f));
+            SetCenteredRect(loadButton.GetComponent<RectTransform>(), new Vector2(0f, -38f), new Vector2(260f, 56f));
+            Button settingsButton = CreateButton("SettingsButton", root.transform, "设置", new Vector2(0.5f, 0.5f), new Vector2(90f, -58f), new Vector2(260f, 56f));
+            SetCenteredRect(settingsButton.GetComponent<RectTransform>(), new Vector2(0f, -112f), new Vector2(260f, 56f));
+            Button exitButton = CreateButton("ExitButton", root.transform, "退出", new Vector2(0.5f, 0.5f), new Vector2(90f, -110f), new Vector2(260f, 56f));
+            SetCenteredRect(exitButton.GetComponent<RectTransform>(), new Vector2(0f, -186f), new Vector2(260f, 56f));
 
-            Text statusText = CreateLegacyText("StatusText", root.transform, "", 16, TextAnchor.MiddleCenter);
-            SetCenteredRect(statusText.rectTransform, new Vector2(0f, -164f), new Vector2(420f, 36f));
+            // 增大主菜单按钮文字。
+            SetButtonFontSize(startButton, 24);
+            SetButtonFontSize(loadButton, 24);
+            SetButtonFontSize(settingsButton, 24);
+            SetButtonFontSize(exitButton, 24);
+
+            Text statusText = CreateLegacyText("StatusText", root.transform, "", 18, TextAnchor.MiddleCenter);
+            SetCenteredRect(statusText.rectTransform, new Vector2(0f, -240f), new Vector2(540f, 40f));
 
             GameObject settingsPanel = CreatePanel("SettingsPanel", root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -210f), new Vector2(360f, 52f));
             Text settingsText = CreateLegacyText("SettingsText", settingsPanel.transform, "设置项后续接入；当前版本使用默认配置", 15, TextAnchor.MiddleCenter);
@@ -831,6 +837,15 @@ namespace SpringAutumn.EditorTools
             Text text = CreateLegacyText("Label", obj.transform, label, 18, TextAnchor.MiddleCenter);
             text.color = Color.white;
             return button;
+        }
+
+        private static void SetButtonFontSize(Button button, int fontSize)
+        {
+            if (button == null)
+                return;
+            Text label = button.GetComponentInChildren<Text>(true);
+            if (label != null)
+                label.fontSize = fontSize;
         }
 
         private static InputField CreateInputField(string name, Transform parent, string value, Vector2 anchoredPosition, Vector2 size)
