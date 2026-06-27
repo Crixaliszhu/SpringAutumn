@@ -73,6 +73,11 @@ namespace SpringAutumn.EditorTools
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "BootstrapScene";
 
+            // 平面均匀环境光：场景未放置任何灯光，默认天空盒环境光会让 3D 立方体出现明暗渐变，
+            // 在地图上表现为中间的亮带/分界。改为 Flat 白色环境光，使所有物体均匀受光、呈扁平 2D 观感。
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = Color.white;
+
             var launcherObject = new GameObject("GameLauncher");
             var launcher = launcherObject.AddComponent<GameLauncher>();
             SetSerializedValue(launcher, "configResourceDir", "Config");
@@ -317,7 +322,8 @@ namespace SpringAutumn.EditorTools
 
             var camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.08f, 0.09f, 0.08f);
+            // 背景色与区域地形块同色，使地形边缘与背景融合，避免出现"分界线"。
+            camera.backgroundColor = new Color(0.10f, 0.12f, 0.10f);
             camera.orthographic = true;
             camera.orthographicSize = orthographicSize;
             camera.nearClipPlane = 0.1f;
@@ -353,7 +359,12 @@ namespace SpringAutumn.EditorTools
             terrainObject.transform.localScale = new Vector3(6.6f, 4.2f, 0.05f);
             var terrainRenderer = terrainObject.GetComponent<Renderer>();
             if (terrainRenderer != null)
-                terrainRenderer.sharedMaterial.color = new Color(0.12f, 0.15f, 0.12f);
+            {
+                // 直接隐藏地形底板的渲染：它原是一块比背景亮的 3D 立方体，边缘形成"分界线"、
+                // 表面还有光照渐变。隐藏渲染后区域地图背景与世界地图一致（纯相机背景色），
+                // 不再有矩形/分界线。保留 Collider 以维持点击交互。
+                terrainRenderer.enabled = false;
+            }
             var terrainView = terrainObject.AddComponent<TerrainView>();
 
             var terrainLabelObject = new GameObject("Label");
